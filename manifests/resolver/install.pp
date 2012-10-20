@@ -1,3 +1,7 @@
 class pdns::resolver::install {
-  realize( Package['pdns-recursor'] )
+  package { [
+    'pdns-recursor'
+  ]:
+    ensure => installed,
+  }
 }
