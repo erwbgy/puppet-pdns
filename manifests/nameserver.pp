@@ -19,12 +19,10 @@
 # == Examples:
 #
 #    class { 'pdns::nameserver':
-#      type        => 'nameserver',
 #      backend     => 'sqlite'
 #    }
 #
 #    class { 'pdns::nameserver':
-#      type        => 'nameserver',
 #      backend     => 'postgresql'
 #      db_password => 'sngy3ouunVKbg4zqYmyFqw'
 #    }
@@ -34,6 +32,13 @@ class pdns::nameserver(
   $backend        = 'postgresql',
   $db_password    = 'vrJRcqfj3Ar1uDuY',
 ) {
+  # TODO: Add use_extlookup and use_hiera to look up values in extlookup and hiera
+  # TODO: Use ident auth for Postgresql (the default) if db_password is not set
+  # TODO: Scripts to add and remove hosts, with reverse lookups
+  # TODO: Make it easy to configure an internal DNS domain
+  # TODO: Add an interface parameter so that we can use network_${interface} for 
+  # the reverse lookups - default to the first entry in interfaces (eg. eth0)
+  # Add a local_domain parameter - default to 'local'
   # Only run on RedHat derived systems.
   case $::osfamily {
     RedHat: { }
@@ -41,5 +46,7 @@ class pdns::nameserver(
       fail('This module only supports RedHat-based systems')
     }
   }
-  require pdns::nameserver::config, pdns::nameserver::install, pdns::nameserver::service
+  require pdns::nameserver::config
+  require pdns::nameserver::install
+  require pdns::nameserver::service
 }
