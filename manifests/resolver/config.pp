@@ -16,5 +16,4 @@ class pdns::resolver::config {
     content => template('pdns/resolver/forward_zones.erb'),
     notify  => Class['pdns::resolver::service'],
   }
-  realize( User['pdns-recursor'] )
 }
