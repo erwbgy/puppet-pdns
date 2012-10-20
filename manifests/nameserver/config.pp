@@ -40,7 +40,6 @@ class pdns::nameserver::config {
   else {
     fail('Only the postgresql and sqlite backends are currently supported')
   }
-  realize( User['pdns'], )
   iptables::allow{ 'dns_tcp': port => '53', protocol => 'tcp' }
   iptables::allow{ 'dns_udp': port => '53', protocol => 'udp' }
 }
