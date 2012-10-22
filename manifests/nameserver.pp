@@ -28,10 +28,9 @@
 #
 class pdns::nameserver(
   $listen_address = $::ipaddress,
-  $backend        = 'sqlite'
+  $backend        = 'sqlite',
+  $use_hiera      = false
 ) {
-  # TODO: Add use_extlookup and use_hiera to look up values in extlookup and hiera
-  # TODO: Use ident auth for Postgresql (the default) if db_password is not set
   # TODO: Scripts to add and remove hosts, with reverse lookups
   # TODO: Make it easy to configure an internal DNS domain
   # TODO: Add an interface parameter so that we can use network_${interface} for 
@@ -44,12 +43,23 @@ class pdns::nameserver(
       fail('This module only supports RedHat-based systems')
     }
   }
-  class { 'pdns::nameserver::config':
-    backend        => $backend,
-    listen_address => $listen_address,
+  if $use_hiera {
+    class { 'pdns::nameserver::config':
+      backend        => hiera('pdns_nameserver_backend', $backend),
+      listen_address => hiera('pdns_nameserver_listen_address', $listen_address)
+    }
+    class { 'pdns::nameserver::install':
+      backend => hiera('pdns_nameserver_backend', $backend),
+    }
   }
-  class { 'pdns::nameserver::install':
-    backend        => $backend,
+  else {
+    class { 'pdns::nameserver::config':
+      backend        => $backend,
+      listen_address => $listen_address,
+    }
+    class { 'pdns::nameserver::install':
+      backend        => $backend,
+    }
   }
   require pdns::nameserver::service
 }
