@@ -1,14 +1,13 @@
 setuid=pdns
 setgid=pdns
-local-address=<%= scope.lookupvar("pdns::nameserver::listen_address %>
-<% if scope.lookupvar("pdns::nameserver::backend") == 'postgresql' -%>
+local-address=<%= scope.lookupvar('pdns::nameserver::config::listen_address') %>
+<% if scope.lookupvar('pdns::nameserver::config::backend') == 'postgresql' -%>
 launch=gpgsql
 gpgsql-user=pdns
-gpgsql-password=<%= scope.lookupvar("pdns::nameserver::db_password") %>
 gpgsql-dbname=powerdns
-<% elsif scope.lookupvar("pdns::nameserver::backend") == 'sqlite' -%>
+<% elsif scope.lookupvar('pdns::nameserver::config::backend') == 'sqlite' -%>
 launch=gsqlite3
 gsqlite3-database=/var/pdns/powerdns.sqlite
 <% else -%>
-# No backend!
+# Something went wrong. No backend specified!
 <% end -%>
