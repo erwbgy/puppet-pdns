@@ -24,13 +24,11 @@
 #
 #    class { 'pdns::nameserver':
 #      backend     => 'postgresql'
-#      db_password => 'sngy3ouunVKbg4zqYmyFqw'
 #    }
 #
 class pdns::nameserver(
   $listen_address = $::ipaddress,
-  $backend        = 'postgresql',
-  $db_password    = 'vrJRcqfj3Ar1uDuY',
+  $backend        = 'sqlite'
 ) {
   # TODO: Add use_extlookup and use_hiera to look up values in extlookup and hiera
   # TODO: Use ident auth for Postgresql (the default) if db_password is not set
@@ -46,7 +44,12 @@ class pdns::nameserver(
       fail('This module only supports RedHat-based systems')
     }
   }
-  require pdns::nameserver::config
-  require pdns::nameserver::install
+  class { 'pdns::nameserver::config':
+    backend        => $backend,
+    listen_address => $listen_address,
+  }
+  class { 'pdns::nameserver::install':
+    backend        => $backend,
+  }
   require pdns::nameserver::service
 }
