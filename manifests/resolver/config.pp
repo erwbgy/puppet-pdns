@@ -1,4 +1,14 @@
-class pdns::resolver::config {
+class pdns::resolver::config (
+  $listen_address = undef,
+  $dont_query     = undef,
+  $forward_zones  = []
+) {
+  if $listen_address == undef {
+    fail('pdns::resolver::config forward_zones is required')
+  }
+  if $dont_query == undef {
+    fail('pdns::resolver::config forward_zones is required')
+  }
   # defaults
   File {
     owner => 'pdns-recursor',
