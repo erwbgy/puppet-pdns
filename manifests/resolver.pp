@@ -1,11 +1,11 @@
 class pdns::resolver(
   $listen_address = $::ipaddress,
   $dont_query     = undef,
-  $forward_zones  = undef,
+  $forward_zones  = [],
   $use_hiera      = false,
   $forward_domain = undef,
   $reverse_domain = undef,
-  $nameserver     = undef
+  $nameserver     = $::ipaddress,
 ) {
   # Only run on RedHat derived systems.
   case $::osfamily {

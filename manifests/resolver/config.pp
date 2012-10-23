@@ -1,5 +1,5 @@
 class pdns::resolver::config (
-  $listen_address = undef,
+  $listen_address = $::ipaddress,,
   $dont_query     = undef,
   $forward_zones  = [],
   $forward_domain = undef,
