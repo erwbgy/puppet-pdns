@@ -1,5 +1,3 @@
-<% if scope.lookupvar("pdns::resolver::config::forward_zones") != :undef -%>
-<% (scope.lookupvar("pdns::resolver::config::forward_zones")).each do |entry| -%>
+<% (scope.lookupvar("pdns::resolver::config::_forward_zones")).each do |entry| -%>
 <%= entry %>
-<% end -%>
 <% end -%>
