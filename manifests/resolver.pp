@@ -1,10 +1,9 @@
 class pdns::resolver(
   $listen_address = $::ipaddress,
-  $dont_query     = '192.168.0.0/16, 172.16.0.0/12, ::1/128',
+  $dont_query     = undef,
   $forward_zones  = undef,
   $use_hiera      = false,
 ) {
-  # TODO: Check $::ipaddress to see what to leave out of dont_query
   # Only run on RedHat derived systems.
   case $::osfamily {
     RedHat: { }

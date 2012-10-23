@@ -10,7 +10,7 @@ describe 'pdns::resolver', :type => 'class' do
     it {
       should create_class('pdns::resolver::config').with( {
         'listen_address' => '10.0.0.1',
-        'dont_query'     => '192.168.0.0/16, 172.16.0.0/12, ::1/128',
+        'dont_query'     => nil,
         'forward_zones'  => nil,
         'use_hiera'      => nil
       } )

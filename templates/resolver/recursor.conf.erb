@@ -1,9 +1,9 @@
 setuid=pdns-recursor
 setgid=pdns-recursor
 local-address=<%= scope.lookupvar("pdns::resolver::config::listen_address") %>
-<% if scope.lookupvar("pdns::resolver::config::dont_query") != '' -%>
-dont-query=<%= scope.lookupvar("pdns::resolver::config::dont_query") %>
+<% if scope.lookupvar("pdns::resolver::config::_dont_query") != :undef -%>
+dont-query=<%= scope.lookupvar("pdns::resolver::config::_dont_query") %>
 <% end -%>
-<% if scope.lookupvar("pdns::resolver::config::forward_zones") != '' -%>
+<% if scope.lookupvar("pdns::resolver::config::forward_zones") != :undef -%>
 forward-zones-file=/etc/pdns-recursor/forward_zones
 <% end -%>
