@@ -6,26 +6,7 @@
 #
 # Only supported on RedHat-based systems
 #
-# == Parameters:
-#
-# $listen_address:: The IP address that the nameserver listens on. Defaults to
-#                   the primary IP address of the host.
-# $backend::        The database backend store for DNS data. Possible values
-#                   are 'postgresql' or 'sqlite'. Defaults to 'sqlite'.
-# $db_password::    The password to be used for the database user.  Not 
-#                   applicable for sqlite.  A default value is set but should
-#                   not normally be used.
-#
-# == Examples:
-#
-#    class { 'pdns::nameserver':
-#      backend     => 'sqlite'
-#    }
-#
-#    class { 'pdns::nameserver':
-#      backend     => 'postgresql'
-#    }
-#
+# For more information see https://github.com/erwbgy/puppet-pdns/
 class pdns::nameserver(
   $listen_address = $::ipaddress,
   $backend        = 'sqlite',
