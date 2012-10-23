@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use DBI;
+use warnings;
+use strict;
+
+my $domain = '<%= scope.lookupvar('pdns::nameserver::config::forward') %>';
+
+<% if scope.lookupvar('pdns::nameserver::config::backend') == 'sqlite' -%>
+# SQLite
+my $dbh = DBI->connect("dbi:SQLite:dbname=/etc/pdns/powerdns.sqlite", "", "");
+<% elsif scope.lookupvar('pdns::nameserver::config::backend') == 'postgresql' -%>
+# Posgresql
+my $dbh = DBI->connect("dbi:Pg:dbname=powerdns", "", "", {AutoCommit => 1})
+  or die DBI->err;
+<% end -%>
+
+my ($domain_id) =
+  $dbh->selectrow_array("SELECT id FROM domains WHERE name='$domain'");
+
+my $sth_insert_CNAME =
+  $dbh->prepare("INSERT INTO records (domain_id, name, type, content, ttl, prio) VALUES($domain_id,?,'CNAME',?,3600,NULL)");
+my $sth_select_CNAME =
+  $dbh->prepare("SELECT name from records where domain_id='$domain_id' AND content=? AND type='CNAME'");
+
+while(<>) {
+  chomp;
+  my ($alias, $host) = split(/\s+/, $_, 2);
+  my ($current_alias, $current_host);
+
+  unless ($current_alias =~ /^(.*?)\./) {
+    $current_alias = $1 . '.' . $domain;
+  }
+  unless ($current_host =~ /^(.*?)\./) {
+    $current_host = $1 . '.' . $domain;
+  }
+
+  $sth_select_CNAME->execute($alias) or die;
+  ($current_host) = $sth_select_A->fetchrow_array;
+
+  print "Adding CNAME record: alias $alias, host $host\n";
+  if ($current_host) {
+    if ($current_host eq $host) {
+      print "already exists\n";
+    }
+    else {
+      print "existing CNAME record for alias $alias with different host $current_host\n";
+    }
+  }
+  else {
+    print "ok\n";
+    $sth_insert_CNAME->execute($alias, $host) or die;
+  }
+
+  print "\n";
+}

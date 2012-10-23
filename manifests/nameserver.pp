@@ -29,7 +29,9 @@
 class pdns::nameserver(
   $listen_address = $::ipaddress,
   $backend        = 'sqlite',
-  $use_hiera      = false
+  $use_hiera      = false,
+  $forward_domain = undef,
+  $reverse_domain = undef
 ) {
   # TODO: Scripts to add and remove hosts, with reverse lookups
   # TODO: Make it easy to configure an internal DNS domain
@@ -46,7 +48,9 @@ class pdns::nameserver(
   if $use_hiera {
     class { 'pdns::nameserver::config':
       backend        => hiera('pdns_nameserver_backend', $backend),
-      listen_address => hiera('pdns_nameserver_listen_address', $listen_address)
+      listen_address => hiera('pdns_nameserver_listen_address', $listen_address),
+      forward_domain => hiera('pdns_nameserver_forward_domain', $forward_domain),
+      reverse_domain => hiera('pdns_nameserver_reverse_domain', $reverse_domain),
     }
     class { 'pdns::nameserver::install':
       backend => hiera('pdns_nameserver_backend', $backend),
@@ -56,6 +60,8 @@ class pdns::nameserver(
     class { 'pdns::nameserver::config':
       backend        => $backend,
       listen_address => $listen_address,
+      forward_domain => $forward_domain,
+      reverse_domain => $reverse_domain,
     }
     class { 'pdns::nameserver::install':
       backend        => $backend,

@@ -1,0 +1,11 @@
+#!/bin/bash
+HOST=$1
+IP=$2
+if test -z "$HOST" -o "$IP"
+then
+  echo "Usage: $0 <hostname> <ip>" >&2
+  echo
+  echo "Example: $0 puppet 10.0.0.1" >&2
+  echo
+fi
+echo "$HOST A $IP" | /var/pdns/add_host_entries

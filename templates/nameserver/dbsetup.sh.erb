@@ -1,0 +1,42 @@
+#!/bin/bash
+<% _backend = scope.lookupvar("pdns::nameserver::config::backend") -%>
+<% if _backend == "postgresql" -%>
+service postgresql initdb
+service postgresql start
+chkconfig postgresql on
+sudo -H -u postgres createdb powerdns
+sudo -H -u postgres psql powerdns < /etc/pdns/schema.sql
+<% elsif _backend == "sqlite" -%>
+sqlite3 /var/pdns/powerdns.sqlite < /etc/pdns/schema.sql
+<% end -%>
+SQL_FILE=$(mktemp '/tmp/pdnsdb-setup.XXXXXXXXXX')
+>$SQL_FILE
+<% if _backend == "postgresql" -%>
+cat <<EOT >>$SQL_FILE
+CREATE USER pdns PASSWORD O1HDV1MiJGkP066j;
+GRANT SELECT ON supermasters TO pdns;
+GRANT ALL ON domains TO pdns;
+GRANT ALL ON domains_id_seq TO pdns;
+GRANT ALL ON records TO pdns;
+GRANT ALL ON records_id_seq TO pdns;
+EOT
+<% end -%>
+<% _listen_address=scope.lookupvar("pdns::nameserver::config::listen_address") -%>
+<% _domain=scope.lookupvar("pdns::nameserver::config::forward_domain") -%>
+<% _reverse = scope.lookupvar("pdns::nameserver::config::reverse") -%>
+<% if _domain != :undef -%>
+cat <<EOT >>$SQL_FILE
+INSERT INTO "domains" (name, type) VALUES('<%= _domain %>','MASTER');
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'<%= _domain %>','NS','ns1.<%= _domain %>',86400,NULL);
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'<%= _domain %>','SOA','ns1.<%= _domain %>',86400,NULL);
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'ns1.<%= _domain %>','A','<%= _listen_address %>',3600,NULL);
+INSERT INTO "domains" (name, type) VALUES('<%= _reverse %>','MASTER');
+INSERT INTO "records" (reverse_id, name, type, content, ttl, prio) VALUES(1,'<%= _reverse %>','NS','<%= _reverse %>',86400,NULL);
+INSERT INTO "records" (reverse_id, name, type, content, ttl, prio) VALUES(1,'<%= _reverse %>','SOA','<%= _reverse %>',86400,NULL);
+INSERT INTO "records" (reverse_id, name, type, content, ttl, prio) VALUES(1,'<%= _reverse %>','A','<%= _listen_address %>',3600,NULL);
+EOT
+<% end -%>
+<% if _backend == "postgresql" -%>
+sudo -H -u postgres psql powerdns < $SQL_FILE
+<% end -%>
+rm -f $SQL_FILE
