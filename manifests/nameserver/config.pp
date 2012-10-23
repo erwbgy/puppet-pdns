@@ -1,6 +1,6 @@
 class pdns::nameserver::config (
-  $backend        = undef,
-  $listen_address = undef,
+  $backend        = 'sqlite',
+  $listen_address = $::ipaddress,
   $forward_domain = undef,
   $reverse_domain = undef,
 ) {
@@ -16,7 +16,7 @@ class pdns::nameserver::config (
     $reverse = $reverse_domain
   }
   if $forward_domain and !$reverse_domain {
-    case $::ipaddress {
+    case $listen_address {
       /^127\./: { $reverse = '127.in-addr.arpa' }
       /^10\./:  { $reverse = '10.in-addr.arpa' }
       /^172\./: { $reverse = '16.172.in-addr.arpa' }
