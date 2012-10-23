@@ -10,11 +10,14 @@ class pdns::nameserver::config (
   if $listen_address == undef {
     fail('pdns::nameserver::config listen_address parameter is required')
   }
+
+  # Set the reverse domain based on the current IP address
   if $reverse_domain {
     $reverse = $reverse_domain
   }
   if $forward_domain and !$reverse_domain {
     case $::ipaddress {
+      /^127\./: { $reverse = '127.in-addr.arpa' }
       /^10\./:  { $reverse = '10.in-addr.arpa' }
       /^172\./: { $reverse = '16.172.in-addr.arpa' }
       /^192\./: { $reverse = '168.192.in-addr.arpa' }
@@ -24,6 +27,7 @@ class pdns::nameserver::config (
     }
     notify { "setting reverse_domain to ${reverse} based on IP address ${::ipaddress}": }
   }
+
   # defaults
   File {
     owner => 'pdns',
