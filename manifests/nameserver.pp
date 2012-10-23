@@ -41,14 +41,15 @@ class pdns::nameserver(
     }
   }
   if $use_hiera {
+    $pdns_nameserver = hiera['pdns_nameserver']
     class { 'pdns::nameserver::config':
-      backend        => hiera('pdns_nameserver_backend', $backend),
-      listen_address => hiera('pdns_nameserver_listen_address', $listen_address),
-      forward_domain => hiera('pdns_nameserver_forward_domain', $forward_domain),
-      reverse_domain => hiera('pdns_nameserver_reverse_domain', $reverse_domain),
+      backend        => $pdns_nameserver['backend'],
+      listen_address => $pdns_nameserver['listen_address'],
+      forward_domain => $pdns_nameserver['forward_domain'],
+      reverse_domain => $pdns_nameserver['reverse_domain'],
     }
     class { 'pdns::nameserver::install':
-      backend => hiera('pdns_nameserver_backend', $backend),
+      backend        => $pdns_nameserver['backend'],
     }
   }
   else {
