@@ -33,11 +33,6 @@ class pdns::nameserver(
   $forward_domain = undef,
   $reverse_domain = undef
 ) {
-  # TODO: Scripts to add and remove hosts, with reverse lookups
-  # TODO: Make it easy to configure an internal DNS domain
-  # TODO: Add an interface parameter so that we can use network_${interface} for 
-  # the reverse lookups - default to the first entry in interfaces (eg. eth0)
-  # Add a local_domain parameter - default to 'local'
   # Only run on RedHat derived systems.
   case $::osfamily {
     RedHat: { }
