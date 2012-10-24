@@ -2,7 +2,7 @@ class pdns::nameserver::config (
   $backend        = 'sqlite',
   $listen_address = $::ipaddress,
   $forward_domain = undef,
-  $reverse_domain = undef,
+  $reverse_domain = undef
 ) {
   if $backend == undef {
     fail('pdns::nameserver::config backend parameter is required')
@@ -74,7 +74,7 @@ class pdns::nameserver::config (
   file { '/etc/pdns/add_host':
     ensure   => present,
     mode     => '0755',
-    content  => 'puppet:///modules/pdns/nameserver/add_host',
+    source   => 'puppet:///modules/pdns/nameserver/add_host',
   }
   file { '/var/pdns/add_cname_entries':
     ensure   => present,
@@ -84,7 +84,7 @@ class pdns::nameserver::config (
   file { '/etc/pdns/add_cname':
     ensure   => present,
     mode     => '0755',
-    content  => 'puppet:///modules/pdns/nameserver/add_cname',
+    source   => 'puppet:///modules/pdns/nameserver/add_cname',
   }
   #iptables::allow{ 'dns_tcp': port => '53', protocol => 'tcp' }
   #iptables::allow{ 'dns_udp': port => '53', protocol => 'udp' }

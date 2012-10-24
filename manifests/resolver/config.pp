@@ -1,10 +1,10 @@
 class pdns::resolver::config (
-  $listen_address = $::ipaddress,,
+  $listen_address = $::ipaddress,
   $dont_query     = undef,
   $forward_zones  = [],
   $forward_domain = undef,
   $reverse_domain = undef,
-  $nameserver     = $::ipaddress,
+  $nameserver     = $::ipaddress
 ) {
   if $forward_domain {
     # By default the pdns recursor will not send queries to local addresses
