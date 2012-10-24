@@ -5,24 +5,13 @@ set -x
 set -e
 <% _backend = scope.lookupvar("pdns::nameserver::config::backend") -%>
 <% if _backend == "postgresql" -%>
-# Add required /etc/sudoers entry to avoid 'sudo: sorry, you must have a tty to
-# run sudo' error
-COUNT=$(grep PDNSNOTTYCMDS /etc/sudoers | wc -l)
-if test $COUNT -eq 0
-then
-  cat <<EOT >>/etc/sudoers
-Cmnd_Alias PDNSNOTTYCMDS = /usr/bin/createdb, /usr/bin/psql
-Defaults!PDNSNOTTYCMDS !requiretty
-EOT
-fi
-
 if test ! -f /var/lib/pgsql/data/PG_VERSION; then
   service postgresql initdb
 fi
 service postgresql start
 chkconfig postgresql on
-sudo -H -u postgres createdb powerdns
-sudo -H -u postgres psql powerdns < /var/pdns/schema.sql
+su -c 'createdb powerdns' postgres
+su -c 'psql powerdns < /var/pdns/schema.sql' postgres
 <% elsif _backend == "sqlite" -%>
 sqlite3 /var/pdns/powerdns.sqlite < /var/pdns/schema.sql
 <% end -%>
@@ -55,7 +44,8 @@ INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(2,'${RE
 EOT
 <% end -%>
 <% if _backend == "postgresql" -%>
-sudo -H -u postgres psql powerdns < $SQL_FILE
+chmod ugo+r $SQL_FILE
+su -c "psql powerdns < $SQL_FILE" postgres
 <% elsif _backend == "sqlite" -%>
 sqlite3 /var/pdns/powerdns.sqlite < $SQL_FILE
 <% end -%>

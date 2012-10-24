@@ -63,29 +63,29 @@ class pdns::nameserver::config (
   }
   file { '/var/pdns/dbsetup.sh':
     ensure  => present,
-    mode    => '0500',
+    mode    => '0555',
     content => template('pdns/nameserver/dbsetup.sh.erb'),
     notify  => Exec['pdns-dbsetup'],
   }
   file { '/var/pdns/add_host_entries':
     ensure   => present,
-    mode     => '0755',
+    mode     => '0555',
     content  => template('pdns/nameserver/add_host_entries.erb')
   }
   file { '/etc/pdns/add_host':
     ensure   => present,
-    mode     => '0755',
-    source   => 'puppet:///modules/pdns/nameserver/add_host',
+    mode     => '0555',
+    content  => template('pdns/nameserver/add_host.erb')
   }
   file { '/var/pdns/add_cname_entries':
     ensure   => present,
-    mode     => '0755',
+    mode     => '0555',
     content  => template('pdns/nameserver/add_cname_entries.erb')
   }
   file { '/etc/pdns/add_cname':
     ensure   => present,
-    mode     => '0755',
-    source   => 'puppet:///modules/pdns/nameserver/add_cname',
+    mode     => '0555',
+    content  => template('pdns/nameserver/add_cname.erb')
   }
   #iptables::allow{ 'dns_tcp': port => '53', protocol => 'tcp' }
   #iptables::allow{ 'dns_udp': port => '53', protocol => 'udp' }

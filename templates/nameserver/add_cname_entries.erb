@@ -27,6 +27,11 @@ while(<>) {
   my ($alias, $type, $host) = split(/\s+/, $_, 3);
   my ($current_alias, $current_host);
 
+  unless ($alias and $type and $host) {
+    warn "Bad input: $_\n";
+    next;
+  }
+
   unless ($alias =~ /^(.*?)\./) {
     $alias .= '.' . $domain;
   }
