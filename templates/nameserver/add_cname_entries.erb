@@ -14,13 +14,17 @@ my $dbh = DBI->connect("dbi:Pg:dbname=powerdns", "", "", {AutoCommit => 1})
   or die DBI->err;
 <% end -%>
 
+# Get id for domain (eg. 'local')
 my ($domain_id) =
   $dbh->selectrow_array("SELECT id FROM domains WHERE name='$domain'");
 
+# Add CNAME entry - input: alias, hostname
 my $sth_insert_CNAME =
   $dbh->prepare("INSERT INTO records (domain_id, name, type, content, ttl, prio) VALUES($domain_id,?,'CNAME',?,3600,NULL)");
+
+# Get CNAME entry - input: alias; output: hostname
 my $sth_select_CNAME =
-  $dbh->prepare("SELECT name from records where domain_id='$domain_id' AND content=? AND type='CNAME'");
+  $dbh->prepare("SELECT content from records where domain_id='$domain_id' AND name=? AND type='CNAME'");
 
 while(<>) {
   chomp;
@@ -39,6 +43,7 @@ while(<>) {
     $host .= '.' . $domain;
   }
 
+  # Get CNAME entry - input: alias; output: hostname
   $sth_select_CNAME->execute($alias) or die;
   ($current_host) = $sth_select_CNAME->fetchrow_array;
 
@@ -53,6 +58,7 @@ while(<>) {
   }
   else {
     print "ok\n";
+    # Add CNAME entry - input: alias, hostname
     $sth_insert_CNAME->execute($alias, $host) or die;
   }
 }
