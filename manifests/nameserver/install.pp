@@ -48,6 +48,14 @@ class pdns::nameserver::install (
         require     => Class['pdns::nameserver::config'],
         subscribe   => Package['sqlite', 'pdns-backend-sqlite'],
         creates     => '/var/pdns/powerdns.sqlite',
+        # TODO: check that exit code is 0
+      }
+      file { '/var/pdns/powerdns.sqlite':
+        ensure  => present,
+        owner   => 'pdns',
+        group   => 'pdns',
+        mode    => '0600',
+        require => Exec['pdns-dbsetup']
       }
     }
     default: {
