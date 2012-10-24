@@ -105,7 +105,7 @@ example to add an alias for the _prod1_ host called _puppet_:
     puppet.local is an alias for prod1.local.
     prod1.local has address 10.0.0.1
 
-Use the 'show' script to see the entries in the database - for example:
+Use the `show` script to see the entries in the database - for example:
 
     # /etc/pdns/show 
                name            | type  |   content    
