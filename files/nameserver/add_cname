@@ -1,11 +1,13 @@
 #!/bin/bash
 ALIAS=$1
 HOST=$2
-if test -z "$HOST" -o "$IP"
+if test -z "$ALIAS" -o -z "$HOST"
 then
   echo "Usage: $0 <alias> <hostname>" >&2
   echo
   echo "Example: $0 puppet prod1" >&2
   echo
+  exit 1
 fi
 echo "$ALIAS CNAME $HOST" | /var/pdns/add_cname_entries
+pdns_control cycle
