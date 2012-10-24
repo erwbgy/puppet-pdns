@@ -1,3 +1,4 @@
 pkg/
 metadata.json
 *.swp
+spec/fixtures/
