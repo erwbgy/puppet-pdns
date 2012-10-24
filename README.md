@@ -105,6 +105,22 @@ example to add an alias for the _prod1_ host called _puppet_:
     puppet.local is an alias for prod1.local.
     prod1.local has address 10.0.0.1
 
+Use the 'show' script to see the entries in the database - for example:
+
+    # /etc/pdns/show 
+               name            | type  |   content    
+    ---------------------------+-------+--------------
+     ns1.local                 | A     | 10.47.73.125
+     prod2.local               | A     | 10.0.0.4
+     alias2.local              | CNAME | prod2.local
+     10.in-addr.arpa           | NS    | ns1.local
+     local                     | NS    | ns1.local
+     125.73.47.10.in-addr.arpa | PTR   | ns1.local
+     4.0.0.10.in-addr.arpa     | PTR   | prod2.local
+     10.in-addr.arpa           | SOA   | ns1.local
+     local                     | SOA   | ns1.local
+    (10 rows)
+
 ## pdns::resolver
 
 Run a PowerDNS resolver that contacts the appropriate DNS name servers on
