@@ -5,7 +5,7 @@ class pdns::resolver(
   $use_hiera      = false,
   $forward_domain = undef,
   $reverse_domain = undef,
-  $nameserver     = $::ipaddress,
+  $nameserver     = $::ipaddress
 ) {
   # Only run on RedHat derived systems.
   case $::osfamily {
