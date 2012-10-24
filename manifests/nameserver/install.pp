@@ -18,7 +18,8 @@ class pdns::nameserver::install (
         'postgresql-server',
         'pdns-backend-postgresql',
         'perl-DBI',
-        'perl-DBD-Pg'
+        'perl-DBD-Pg',
+        'sudo'
       ]:
         ensure => installed,
       }
