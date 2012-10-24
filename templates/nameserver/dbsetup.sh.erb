@@ -1,8 +1,13 @@
 #!/bin/bash
+exec >/var/pdns/dbsetup.log
+exec 2>&1
+set -x
 set -e
 <% _backend = scope.lookupvar("pdns::nameserver::config::backend") -%>
 <% if _backend == "postgresql" -%>
-service postgresql initdb
+if test ! -f /var/lib/pgsql/data/PG_VERSION; then
+  service postgresql initdb
+fi
 service postgresql start
 chkconfig postgresql on
 sudo -H -u postgres createdb powerdns
@@ -14,7 +19,7 @@ SQL_FILE=$(mktemp '/tmp/pdnsdb-setup.XXXXXXXXXX')
 >$SQL_FILE
 <% if _backend == "postgresql" -%>
 cat <<EOT >>$SQL_FILE
-CREATE USER pdns PASSWORD O1HDV1MiJGkP066j;
+CREATE USER pdns;
 GRANT SELECT ON supermasters TO pdns;
 GRANT ALL ON domains TO pdns;
 GRANT ALL ON domains_id_seq TO pdns;
