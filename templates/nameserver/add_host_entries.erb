@@ -3,12 +3,12 @@ use DBI;
 use warnings;
 use strict;
 
-my $forward_domain = '<%= scope.lookupvar('pdns::nameserver::config::forward') %>';
+my $forward_domain = '<%= scope.lookupvar('pdns::nameserver::config::forward_domain') %>';
 my $reverse_domain = '<%= scope.lookupvar('pdns::nameserver::config::reverse') %>';
 
 <% if scope.lookupvar('pdns::nameserver::config::backend') == 'sqlite' -%>
 # SQLite
-my $dbh = DBI->connect("dbi:SQLite:dbname=/etc/pdns/powerdns.sqlite", "", "");
+my $dbh = DBI->connect("dbi:SQLite:dbname=/var/pdns/powerdns.sqlite", "", "");
 <% elsif scope.lookupvar('pdns::nameserver::config::backend') == 'postgresql' -%>
 # Posgresql
 my $dbh = DBI->connect("dbi:Pg:dbname=powerdns", "", "", {AutoCommit => 1})
@@ -35,11 +35,11 @@ my $sth_select_PTR_host =
 
 while(<>) {
   chomp;
-  my ($host, $type, $ip) = split(/\s+/, $_, 2);
+  my ($host, $type, $ip) = split(/\s+/, $_, 3);
   my ($current_host, $current_ip);
 
-  unless ($current_host =~ /^(.*?)\./) {
-    $current_host = $1 . '.' . $forward_domain;
+  unless ($host =~ /^(.*?)\./) {
+    $host .= '.' . $forward_domain;
   }
 
   $sth_select_A->execute($host) or die;
@@ -85,7 +85,9 @@ while(<>) {
   }
   else {
     print "ok\n";
-    $sth_insert_PTR->execute($ip, $host) or die;
+    my @f = split(/\./, $ip);
+    my $reverse_ip = join(".", reverse @f);
+    $sth_insert_PTR->execute("${reverse_ip}.in-addr.arpa", $host) or die;
   }
   print "\n";
 }

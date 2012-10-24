@@ -3,11 +3,11 @@ use DBI;
 use warnings;
 use strict;
 
-my $domain = '<%= scope.lookupvar('pdns::nameserver::config::forward') %>';
+my $domain = '<%= scope.lookupvar('pdns::nameserver::config::forward_domain') %>';
 
 <% if scope.lookupvar('pdns::nameserver::config::backend') == 'sqlite' -%>
 # SQLite
-my $dbh = DBI->connect("dbi:SQLite:dbname=/etc/pdns/powerdns.sqlite", "", "");
+my $dbh = DBI->connect("dbi:SQLite:dbname=/var/pdns/powerdns.sqlite", "", "");
 <% elsif scope.lookupvar('pdns::nameserver::config::backend') == 'postgresql' -%>
 # Posgresql
 my $dbh = DBI->connect("dbi:Pg:dbname=powerdns", "", "", {AutoCommit => 1})
@@ -24,18 +24,18 @@ my $sth_select_CNAME =
 
 while(<>) {
   chomp;
-  my ($alias, $host) = split(/\s+/, $_, 2);
+  my ($alias, $type, $host) = split(/\s+/, $_, 3);
   my ($current_alias, $current_host);
 
-  unless ($current_alias =~ /^(.*?)\./) {
-    $current_alias = $1 . '.' . $domain;
+  unless ($alias =~ /^(.*?)\./) {
+    $alias .= '.' . $domain;
   }
-  unless ($current_host =~ /^(.*?)\./) {
-    $current_host = $1 . '.' . $domain;
+  unless ($host =~ /^(.*?)\./) {
+    $host .= '.' . $domain;
   }
 
   $sth_select_CNAME->execute($alias) or die;
-  ($current_host) = $sth_select_A->fetchrow_array;
+  ($current_host) = $sth_select_CNAME->fetchrow_array;
 
   print "Adding CNAME record: alias $alias, host $host\n";
   if ($current_host) {
