@@ -23,7 +23,7 @@ class pdns::nameserver::install (
         ensure => installed,
       }
       exec { 'pdns-dbsetup':
-        command     => '/etc/pdns/dbsetup.sh',
+        command     => '/var/pdns/dbsetup.sh',
         require     => Class['pdns::nameserver::config'],
         subscribe   =>
           Package[
@@ -44,7 +44,7 @@ class pdns::nameserver::install (
         ensure => installed,
       }
       exec { 'pdns-dbsetup':
-        command     => '/etc/pdns/dbsetup.sh',
+        command     => '/var/pdns/dbsetup.sh',
         require     => Class['pdns::nameserver::config'],
         subscribe   => Package['sqlite', 'pdns-backend-sqlite'],
         creates     => '/var/pdns/powerdns.sqlite',
