@@ -4,5 +4,5 @@ echo 'select name, type, content from records order by type,name;' | \
 <% if _backend == "postgresql" -%>
 su -c 'psql powerdns' postgres
 <% elsif backend == "sqlite" -%>
-sqlite3 /var/pdns/powerdns.sqlite
+sqlite3 -column /var/pdns/powerdns.sqlite
 <% end -%>
