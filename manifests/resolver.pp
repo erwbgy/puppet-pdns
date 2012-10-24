@@ -23,7 +23,7 @@ class pdns::resolver(
       forward_domain => $pdns_resolver['forward_domain'],
       reverse_domain => $pdns_resolver['reverse_domain'],
       nameserver     => $pdns_resolver['nameserver'],
-    } 
+    }
   }
   else {
     class { 'pdns::resolver::config':
@@ -33,7 +33,7 @@ class pdns::resolver(
       forward_domain => $forward_domain,
       reverse_domain => $reverse_domain,
       nameserver     => $nameserver,
-    } 
+    }
   }
   require pdns::resolver::install
   require pdns::resolver::service
