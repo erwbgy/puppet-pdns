@@ -58,12 +58,14 @@ class pdns::resolver::config (
     ensure  => present,
     mode    => '0444',
     content => template('pdns/resolver/recursor.conf.erb'),
+    require => Package['pdns-recursor'],
     notify  => Class['pdns::resolver::service'],
   }
   file { '/etc/pdns-recursor/forward_zones':
     ensure  => present,
     mode    => '0444',
     content => template('pdns/resolver/forward_zones.erb'),
+    require => Package['pdns-recursor'],
     notify  => Class['pdns::resolver::service'],
   }
 }

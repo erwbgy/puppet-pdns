@@ -37,24 +37,28 @@ class pdns::nameserver::config (
     ensure  => present,
     mode    => '0400',
     content => template('pdns/nameserver/pdns.conf.erb'),
+    require => Package['pdns'],
     notify  => Class['pdns::nameserver::service'],
   }
   file { '/var/pdns':
     ensure => directory,
+    mode   => '0755',
   }
   case $backend {
     'postgresql': {
       file { '/var/pdns/schema.sql':
-        ensure => present,
-        mode   => '0444',
-        source => 'puppet:///modules/pdns/nameserver/postgresql-schema.sql',
+        ensure  => present,
+        mode    => '0444',
+        source  => 'puppet:///modules/pdns/nameserver/postgresql-schema.sql',
+        require => File['/var/pdns'],
       }
     }
     'sqlite': {
       file { '/var/pdns/schema.sql':
-        ensure => present,
-        mode   => '0444',
-        source => 'puppet:///modules/pdns/nameserver/sqlite-schema.sql',
+        ensure  => present,
+        mode    => '0444',
+        source  => 'puppet:///modules/pdns/nameserver/sqlite-schema.sql',
+        require => File['/var/pdns'],
       }
     }
     default: {
@@ -66,26 +70,37 @@ class pdns::nameserver::config (
     mode    => '0555',
     content => template('pdns/nameserver/dbsetup.sh.erb'),
     notify  => Exec['pdns-dbsetup'],
+    require => File['/var/pdns'],
   }
   file { '/var/pdns/add_host_entries':
-    ensure   => present,
-    mode     => '0555',
-    content  => template('pdns/nameserver/add_host_entries.erb')
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/add_host_entries.erb'),
+    require => File['/var/pdns'],
   }
   file { '/etc/pdns/add_host':
-    ensure   => present,
-    mode     => '0555',
-    content  => template('pdns/nameserver/add_host.erb')
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/add_host.erb'),
+    require => Package['pdns'],
   }
   file { '/var/pdns/add_cname_entries':
-    ensure   => present,
-    mode     => '0555',
-    content  => template('pdns/nameserver/add_cname_entries.erb')
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/add_cname_entries.erb'),
+    require => Package['pdns'],
   }
   file { '/etc/pdns/add_cname':
-    ensure   => present,
-    mode     => '0555',
-    content  => template('pdns/nameserver/add_cname.erb')
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/add_cname.erb'),
+    require => Package['pdns'],
+  }
+  file { '/etc/pdns/show':
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/show.erb'),
+    require => Package['pdns'],
   }
   #iptables::allow{ 'dns_tcp': port => '53', protocol => 'tcp' }
   #iptables::allow{ 'dns_udp': port => '53', protocol => 'udp' }
