@@ -1,13 +1,14 @@
 #!/bin/bash
+set -e
 <% _backend = scope.lookupvar("pdns::nameserver::config::backend") -%>
 <% if _backend == "postgresql" -%>
 service postgresql initdb
 service postgresql start
 chkconfig postgresql on
 sudo -H -u postgres createdb powerdns
-sudo -H -u postgres psql powerdns < /etc/pdns/schema.sql
+sudo -H -u postgres psql powerdns < /var/pdns/schema.sql
 <% elsif _backend == "sqlite" -%>
-sqlite3 /var/pdns/powerdns.sqlite < /etc/pdns/schema.sql
+sqlite3 /var/pdns/powerdns.sqlite < /var/pdns/schema.sql
 <% end -%>
 SQL_FILE=$(mktemp '/tmp/pdnsdb-setup.XXXXXXXXXX')
 >$SQL_FILE
@@ -25,18 +26,23 @@ EOT
 <% _domain=scope.lookupvar("pdns::nameserver::config::forward_domain") -%>
 <% _reverse = scope.lookupvar("pdns::nameserver::config::reverse") -%>
 <% if _domain != :undef -%>
+REVERSE_IP=$(perl -e 'my @f = split(/\./, $ARGV[0]); print join(".", reverse @f)' <%= _listen_address %>)
 cat <<EOT >>$SQL_FILE
 INSERT INTO "domains" (name, type) VALUES('<%= _domain %>','MASTER');
 INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'<%= _domain %>','NS','ns1.<%= _domain %>',86400,NULL);
 INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'<%= _domain %>','SOA','ns1.<%= _domain %>',86400,NULL);
 INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'ns1.<%= _domain %>','A','<%= _listen_address %>',3600,NULL);
 INSERT INTO "domains" (name, type) VALUES('<%= _reverse %>','MASTER');
-INSERT INTO "records" (reverse_id, name, type, content, ttl, prio) VALUES(1,'<%= _reverse %>','NS','<%= _reverse %>',86400,NULL);
-INSERT INTO "records" (reverse_id, name, type, content, ttl, prio) VALUES(1,'<%= _reverse %>','SOA','<%= _reverse %>',86400,NULL);
-INSERT INTO "records" (reverse_id, name, type, content, ttl, prio) VALUES(1,'<%= _reverse %>','A','<%= _listen_address %>',3600,NULL);
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(2,'<%= _reverse %>','NS','ns1.<%= _domain %>',86400,NULL);
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(2,'<%= _reverse %>','SOA','ns1.<%= _domain %>',86400,NULL);
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(2,'${REVERSE_IP}.in-addr.arpa','PTR','ns1.<%= _domain %>',3600,NULL);
 EOT
 <% end -%>
 <% if _backend == "postgresql" -%>
 sudo -H -u postgres psql powerdns < $SQL_FILE
+<% elsif _backend == "sqlite" -%>
+sqlite3 /var/pdns/powerdns.sqlite < $SQL_FILE
 <% end -%>
 rm -f $SQL_FILE
+set +e
+exit 0
