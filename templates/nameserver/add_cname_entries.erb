@@ -37,7 +37,7 @@ while(<>) {
   $sth_select_CNAME->execute($alias) or die;
   ($current_host) = $sth_select_CNAME->fetchrow_array;
 
-  print "Adding CNAME record: alias $alias, host $host\n";
+  print "Adding CNAME record: alias $alias, host $host: ";
   if ($current_host) {
     if ($current_host eq $host) {
       print "already exists\n";
@@ -50,6 +50,4 @@ while(<>) {
     print "ok\n";
     $sth_insert_CNAME->execute($alias, $host) or die;
   }
-
-  print "\n";
 }

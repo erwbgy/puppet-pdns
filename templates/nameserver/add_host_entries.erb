@@ -48,7 +48,7 @@ while(<>) {
   $sth_select_A_IP->execute($ip) or die;
   ($current_host) = $sth_select_A_IP->fetchrow_array;
 
-  print "Adding A record for host $host with IP $ip\n";
+  print "Adding A record for host $host with IP $ip: ";
   if ($current_ip) {
     if ($current_ip eq $ip) {
       print "already exists\n";
@@ -71,7 +71,7 @@ while(<>) {
   $sth_select_PTR_host->execute($host) or die;
   ($current_ip) = $sth_select_PTR_host->fetchrow_array;
 
-  print "Adding PTR record for IP $ip with host $host\n";
+  print "Adding PTR record for IP $ip with host $host: ";
   if ($current_host) {
     if ($current_host eq $host) {
       print "already exists\n";
@@ -89,5 +89,4 @@ while(<>) {
     my $reverse_ip = join(".", reverse @f);
     $sth_insert_PTR->execute("${reverse_ip}.in-addr.arpa", $host) or die;
   }
-  print "\n";
 }

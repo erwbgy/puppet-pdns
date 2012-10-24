@@ -86,20 +86,24 @@ which is the same as:
 ### Scripts
 
 Use the `add_host` script to add an A record for a hostname - for example add
-an A record for the _puppet_ host with IP _10.17.0.3_:
+an A record for the _prod1_ host with IP _10.0.0.3_:
 
-    $ /etc/pdns/add_host puppet 10.17.0.3
-    $ host puppet
-    puppet.local has address 10.17.0.3
+    # /etc/pdns/add_host prod1 10.0.0.3
+    Adding A record for host x120.local with IP 10.0.0.3: ok
+    Adding PTR record for IP 10.0.0.3 with host prod1.local: ok
+    Restarting name server: ok
+    $ host prod1
+    prod1.local has address 10.0.0.3
 
 Use the `add_cname` script to add an CNAME record (alias) for a hostname - for
 example to add an alias for the _prod1_ host called _puppet_:
 
-    $ /etc/pdns/add_cname puppet prod1
-    $ host prod1
-    prod1.local has address 10.17.0.19
+    # /etc/pdns/add_cname puppet prod1
+    Adding CNAME record: alias puppet.local, host prod1.local: ok
+    Restarting name server: ok
     $ host puppet
-    puppet.local has address 10.17.0.19
+    puppet.local is an alias for prod1.local.
+    prod1.local has address 10.0.0.1
 
 ## pdns::resolver
 

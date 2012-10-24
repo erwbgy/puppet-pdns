@@ -10,4 +10,5 @@ then
   exit 1
 fi
 echo "$HOST A $IP" | /var/pdns/add_host_entries
+printf "Restarting name server: "
 pdns_control cycle

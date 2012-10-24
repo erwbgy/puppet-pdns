@@ -10,4 +10,5 @@ then
   exit 1
 fi
 echo "$ALIAS CNAME $HOST" | /var/pdns/add_cname_entries
+printf "Restarting name server: "
 pdns_control cycle
