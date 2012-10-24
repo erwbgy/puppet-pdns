@@ -65,6 +65,7 @@ class pdns::nameserver::config (
     ensure  => present,
     mode    => '0500',
     content => template('pdns/nameserver/dbsetup.sh.erb'),
+    notify  => Exec['pdns-dbsetup'],
   }
   file { '/var/pdns/add_host_entries':
     ensure   => present,
