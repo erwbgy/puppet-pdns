@@ -39,29 +39,130 @@
 
 <h2>pdns::nameserver</h2>
 
-<p>Run a PowerDNS name server to answer hostname/IP queries from DNS resolvers for
-a specific set of domains managed by the name server.</p>
+<p>Run a PowerDNS name server to authoritatively answer hostname/IP queries from DNS
+resolvers for a specific set of domains managed by the name server.</p>
 
 <h3>Parameters</h3>
+
+<p><em>use_hiera</em>: look up configuration under 'pdns_nameserver' hash in hiera</p>
 
 <p><em>backend</em>: database backend to use - one of: <em>sqlite</em> or <em>postgresql</em>. Default: <em>sqlite</em>.</p>
 
 <p><em>listen_address</em>: IP to listen on. Default: <em>$::ipaddress</em></p>
 
+<p><em>forward_domain</em>: Internal domain name (eg. .local). Default: undef</p>
+
+<p><em>reverse_domain</em>: Reverse .in-addr.arpa domain name for the forward domain (eg.
+10.in-addr.arpa).  If forward domain is specified and this is not set then it
+is derived from the listen_address.  Default: undef</p>
+
+<h4>Hiera configuration</h4>
+
+<p>Parameters can be specified in hiera configuration files under the
+'pdns_nameserver' hash:</p>
+
+<pre><code>pdns_nameserver:
+  backend: ...
+  listen_address: ...
+  forward_domain: ...
+  reverse_domain: ...
+</code></pre>
+
 <h3>Examples</h3>
 
-<p>PowerDNS name server with Postgresql backend:</p>
+<p>Assuming that the primary IP address is a 10.17.0.1:</p>
+
+<p>1) PowerDNS name server with SQLite backend</p>
+
+<pre><code>class { 'pdns::nameserver': }
+</code></pre>
+
+<p>or:</p>
+
+<pre><code>class { 'pdns::nameserver':
+  backend =&gt; 'sqlite'
+}
+</code></pre>
+
+<p>which is the same as:</p>
+
+<pre><code>class { 'pdns::nameserver':
+  backend        =&gt; 'sqlite',
+  listen_address =&gt; '10.17.0.1',
+}
+</code></pre>
+
+<p>2) PowerDNS name server with Postgresql backend:</p>
 
 <pre><code>class { 'pdns::nameserver':
   backend =&gt; 'postgresql'
 }
 </code></pre>
 
-<p>PowerDNS name server with SQLite backend</p>
+<p>which is the same as:</p>
 
 <pre><code>class { 'pdns::nameserver':
-  backend =&gt; 'sqlite'
+  backend        =&gt; 'postgresql',
+  listen_address =&gt; '10.17.0.1',
 }
+</code></pre>
+
+<p>3) PowerDNS name server configured with an internal .local domain:</p>
+
+<pre><code>class { 'pdns::nameserver':
+  forward_domain =&gt; 'local'
+}
+</code></pre>
+
+<p>which is the same as:</p>
+
+<pre><code>class { 'pdns::nameserver':
+  backend        =&gt; 'sqlite',
+  listen_address =&gt; '10.17.0.1',
+  forward_domain =&gt; 'local',
+  reverse_domain =&gt; '10.in-addr.arpa',
+}
+</code></pre>
+
+<h3>Scripts</h3>
+
+<p>Use the <code>add_host</code> script to add an A record for a hostname - for example add
+an A record for the <em>prod1</em> host with IP <em>10.0.0.3</em>:</p>
+
+<pre><code># /etc/pdns/add_host prod1 10.0.0.3
+Adding A record for host x120.local with IP 10.0.0.3: ok
+Adding PTR record for IP 10.0.0.3 with host prod1.local: ok
+Restarting name server: ok
+$ host prod1
+prod1.local has address 10.0.0.3
+</code></pre>
+
+<p>Use the <code>add_cname</code> script to add an CNAME record (alias) for a hostname - for
+example to add an alias for the <em>prod1</em> host called <em>puppet</em>:</p>
+
+<pre><code># /etc/pdns/add_cname puppet prod1
+Adding CNAME record: alias puppet.local, host prod1.local: ok
+Restarting name server: ok
+$ host puppet
+puppet.local is an alias for prod1.local.
+prod1.local has address 10.0.0.1
+</code></pre>
+
+<p>Use the <code>show</code> script to see the entries in the database - for example:</p>
+
+<pre><code># /etc/pdns/show 
+           name            | type  |   content    
+---------------------------+-------+--------------
+ ns1.local                 | A     | 10.47.73.125
+ prod2.local               | A     | 10.0.0.4
+ alias2.local              | CNAME | prod2.local
+ 10.in-addr.arpa           | NS    | ns1.local
+ local                     | NS    | ns1.local
+ 125.73.47.10.in-addr.arpa | PTR   | ns1.local
+ 4.0.0.10.in-addr.arpa     | PTR   | prod2.local
+ 10.in-addr.arpa           | SOA   | ns1.local
+ local                     | SOA   | ns1.local
+(10 rows)
 </code></pre>
 
 <h2>pdns::resolver</h2>
@@ -73,21 +174,149 @@ Linux/Unix hosts.)</p>
 
 <h3>Parameters</h3>
 
+<p><em>use_hiera</em>: look up configuration under 'pdns_resolver' hash in hiera</p>
+
 <p><em>listen_address</em>: IP to listen on. Default: <em>$::ipaddress</em></p>
 
-<p><em>dont_query</em>: IP ranges to exclude from lookups. Default: '10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12, ::1/128'</p>
+<p><em>dont_query</em>: IP ranges to exclude from lookups. Default: '127.0.0.0/8, 10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12, ::1/128'</p>
 
-<p><em>forward_zones</em>: specify name server IPs for specific domains</p>
+<p><em>forward_zones</em>: Array of = values specifying where to
+send queries for specific domain.  Default: undef</p>
+
+<p><em>forward_domain</em>: Internal domain name (eg. .local). Default: undef</p>
+
+<p><em>reverse_domain</em>: Reverse .in-addr.arpa domain name for the forward domain (eg.
+10.in-addr.arpa).  If forward domain is specified and this is not set then it
+is derived from the listen_address.  Default: undef</p>
+
+<p><em>nameserver</em>: The IP address of the authoritative nameserver for the internal
+domain name specified in $forward_domain.  Default: $::ipaddress</p>
+
+<h4>Hiera configuration</h4>
+
+<p>Parameters can be specified in hiera configuration files under the
+'pdns_resolver' hash:</p>
+
+<pre><code>pdns_resolver:
+  listen_address: ...
+  dont_query: ...
+  forward_zones: ...
+  forward_domain: ...
+  reverse_domain: ...
+  nameserver: ...
+</code></pre>
 
 <h3>Examples</h3>
 
-<p>PowerDNS resolver:</p>
+<p>Assuming that the local IP address is 192.168.0.72 and there is a authoritative
+name server for an internal .local domain at 192.168.0.2:</p>
+
+<p>1) Basic PowerDNS resolver:</p>
+
+<pre><code>class { 'pdns::resolver': }
+</code></pre>
+
+<p>which is the same as:</p>
 
 <pre><code>class { 'pdns::resolver':
-  listen_address =&gt; $::ipaddress_lo,
-  dont_query     =&gt; '192.168.0.0/16, 172.16.0.0/12, ::1/128',
-  forward_zones  =&gt; [ 'local=10.5.11.16', '5.10.in-addr.arpa=10.5.11.16' ]
+  listen_address =&gt; 192.168.0.72
 }
+</code></pre>
+
+<p>3) PowerDNS resolver configured to send queries for a .local domain to the
+specified name server:</p>
+
+<pre><code>class { 'pdns::resolver':
+  forward_domain =&gt; 'local',
+  nameserver     =&gt; '192.168.0.2'
+}
+</code></pre>
+
+<p>which is the same as:</p>
+
+<pre><code>class { 'pdns::resolver':
+  listen_address =&gt; 192.168.0.72,
+  dont_query     =&gt; '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
+  forward_domain =&gt; 'local',
+  reverse_domain =&gt; '168.192.in-addr.arpa',
+  nameserver     =&gt; '192.168.0.2'
+}
+</code></pre>
+
+<p>or:</p>
+
+<pre><code>class { 'pdns::resolver':
+  listen_address =&gt; 192.168.0.72,
+  dont_query     =&gt; '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
+  forward_zones  =&gt; [
+    'local=192.168.0.2',
+    '168.192.in-addr.arpa=192.168.0.2'
+  ]
+}
+</code></pre>
+
+<p>4) PowerDNS resolver configured to send queries for a .local domain to the
+specified name server and network (192.168.0.0/24) for reverse lookups:</p>
+
+<pre><code>class { 'pdns::resolver':
+  forward_domain =&gt; 'local',
+  forward_zones  =&gt; [
+    'local=192.168.0.2',
+    '0.168.192.in-addr.arpa=192.168.0.2'
+  ]
+}
+</code></pre>
+
+<p>which is the same as:</p>
+
+<pre><code>class { 'pdns::resolver':
+  listen_address =&gt; '192.168.0.72',
+  dont_query     =&gt; '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
+  forward_zones  =&gt; [
+    'local=192.168.0.2',
+    '0.168.192.in-addr.arpa=192.168.0.2'
+  ]
+}
+</code></pre>
+
+<p>or:</p>
+
+<pre><code>class { 'pdns::resolver':
+  listen_address =&gt; '192.168.0.72',
+  dont_query     =&gt; '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
+  forward_domain =&gt; 'local',
+  reverse_domain =&gt; '0.168.192.in-addr.arpa',
+  nameserver     =&gt; '192.168.0.2',
+}
+</code></pre>
+
+<h2>Testing</h2>
+
+<p>Tests are implemented using RSpec, rspec-puppet and puppetlabs_spec_helper.  To
+run them you will first need to install puppetlabs_spec_helper:</p>
+
+<pre><code># gem install puppetlabs_spec_helper
+</code></pre>
+
+<p>Then switch to the module directory and run rake:</p>
+
+<pre><code>$ rake
+rake build            # Build puppet module package
+rake clean            # Clean a built module package
+rake coverage         # Generate code coverage information
+rake help             # Display the list of available rake tasks
+rake lint             # Check puppet manifests with puppet-lint
+rake spec             # Run spec tests in a clean fixtures directory
+rake spec_clean       # Clean up the fixtures directory
+rake spec_prep        # Create the fixtures directory
+rake spec_standalone  # Run spec tests on an existing fixtures directory
+
+$ rake spec
+/usr/bin/ruby -S rspec spec/classes/pdns__resolver_spec.rb spec/classes/pdns__nameserver_spec.rb spec/classes/pdns__resolver__config_spec.rb spec/classes/pdns__nameserver__config_spec.rb --color
+...............
+
+Finished in 5.19 seconds
+15 examples, 0 failures
 </code></pre>
 
 <h2>Support</h2>
