@@ -15,36 +15,57 @@ my $dbh = DBI->connect("dbi:Pg:dbname=powerdns", "", "", {AutoCommit => 1})
   or die DBI->err;
 <% end -%>
 
+# Get domain id for forward domain (eg. 'local')
 my ($forward_domain_id) =
   $dbh->selectrow_array("SELECT id FROM domains WHERE name='$forward_domain'");
+
+# Get domain if for reverse domain (eg. '10.in-addr.arpa')
 my ($reverse_domain_id) =
   $dbh->selectrow_array("SELECT id FROM domains WHERE name='$reverse_domain'");
 
+# Add A record - input: hostname, IP
 my $sth_insert_A =
   $dbh->prepare("INSERT INTO records (domain_id, name, type, content, ttl, prio) VALUES($forward_domain_id,?,'A',?,3600,NULL)");
+
+# Add PTR (in-addr.arpa) record - input: reverse IP, hostname
 my $sth_insert_PTR =
   $dbh->prepare("INSERT INTO records (domain_id, name, type, content, ttl, prio) VALUES($reverse_domain_id,?,'PTR',?,3600,NULL)");
+
+# Get A record - input: hostname; output: IP
 my $sth_select_A =
   $dbh->prepare("SELECT content from records where domain_id='$forward_domain_id' AND name=?");
+
+# Get IP from A record - input: IP; output: hostname
 my $sth_select_A_IP =
   $dbh->prepare("SELECT name from records where domain_id='$forward_domain_id' AND content=?");
+
+# Get PTR record - input: reverse IP; output hostname
 my $sth_select_PTR =
   $dbh->prepare("SELECT content from records where domain_id='$reverse_domain_id' AND name=?");
+
+# Get reverse IP from PTR record - input: hostname; output: reverse IP
 my $sth_select_PTR_host =
   $dbh->prepare("SELECT name from records where domain_id='$reverse_domain_id' AND content=?");
 
 while(<>) {
   chomp;
   my ($host, $type, $ip) = split(/\s+/, $_, 3);
-  my ($current_host, $current_ip);
+  my ($current_host, $current_ip, $current_reverse_entry);
+
+  unless ($host and $type and $ip) {
+    warn "Bad input: $_\n";
+    next;
+  }
 
   unless ($host =~ /^(.*?)\./) {
     $host .= '.' . $forward_domain;
   }
 
+  # Get A record - input: hostname; output: IP
   $sth_select_A->execute($host) or die;
   ($current_ip) = $sth_select_A->fetchrow_array;
 
+  # Get IP from A record - input: IP; output: hostname
   $sth_select_A_IP->execute($ip) or die;
   ($current_host) = $sth_select_A_IP->fetchrow_array;
 
@@ -62,31 +83,36 @@ while(<>) {
   }
   else {
     print "ok\n";
+    # Add A record - input: hostname, IP
     $sth_insert_A->execute($host, $ip) or die;
   }
 
-  $sth_select_PTR->execute($ip) or die;
+  my @f = split(/\./, $ip);
+  my $reverse_entry = join(".", reverse @f) . '.in-addr.arpa';
+
+  # Get PTR record - input: reverse IP; output hostname
+  $sth_select_PTR->execute($reverse_entry) or die;
   ($current_host) = $sth_select_PTR->fetchrow_array;
 
+  # Get reverse IP from PTR record - input: hostname; output: reverse IP
   $sth_select_PTR_host->execute($host) or die;
-  ($current_ip) = $sth_select_PTR_host->fetchrow_array;
+  ($current_reverse_entry) = $sth_select_PTR_host->fetchrow_array;
 
-  print "Adding PTR record for IP $ip with host $host: ";
+  print "Adding PTR record for reverse IP $reverse_entry with host $host: ";
   if ($current_host) {
     if ($current_host eq $host) {
       print "already exists\n";
     }
     else {
-      print "existing PTR record for IP $ip with different host $current_host\n";
+      print "existing PTR record for reverse IP $reverse_entry with different host $current_host\n";
     }
   }
-  elsif ($current_ip) {
-    print "existing PTR record for different IP $current_ip with host $host\n";
+  elsif ($current_reverse_entry) {
+    print "existing PTR record for different reverse IP $current_reverse_entry with host $host\n";
   }
   else {
     print "ok\n";
-    my @f = split(/\./, $ip);
-    my $reverse_ip = join(".", reverse @f);
-    $sth_insert_PTR->execute("${reverse_ip}.in-addr.arpa", $host) or die;
+    # Add PTR (in-addr.arpa) record - input: reverse IP, hostname
+    $sth_insert_PTR->execute($reverse_entry, $host) or die;
   }
 }
