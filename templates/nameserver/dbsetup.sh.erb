@@ -36,7 +36,8 @@ cat <<EOT >>$SQL_FILE
 INSERT INTO "domains" (name, type) VALUES('<%= _domain %>','MASTER');
 INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'<%= _domain %>','NS','ns1.<%= _domain %>',86400,NULL);
 INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'<%= _domain %>','SOA','ns1.<%= _domain %>',86400,NULL);
-INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'ns1.<%= _domain %>','A','<%= _listen_address %>',3600,NULL);
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'<%= scope.lookupvar("::hostname") %>.<%= _domain %>','A','<%= _listen_address %>',3600,NULL);
+INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(1,'ns1.<%= _domain %>','CNAME','<%= scope.lookupvar("::hostname") %>.<%= _domain %>',3600,NULL);
 INSERT INTO "domains" (name, type) VALUES('<%= _reverse %>','MASTER');
 INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(2,'<%= _reverse %>','NS','ns1.<%= _domain %>',86400,NULL);
 INSERT INTO "records" (domain_id, name, type, content, ttl, prio) VALUES(2,'<%= _reverse %>','SOA','ns1.<%= _domain %>',86400,NULL);
