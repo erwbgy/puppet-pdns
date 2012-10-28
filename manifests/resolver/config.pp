@@ -4,14 +4,14 @@ class pdns::resolver::config (
   $forward_zones  = [],
   $forward_domain = undef,
   $reverse_domain = undef,
-  $nameserver     = $::ipaddress
+  $nameservers    = $::ipaddress
 ) {
   if $forward_domain {
     # By default the pdns recursor will not send queries to local addresses
     # but if we are running a local domain then we need to change this to
     # enable queries to our name server
     if $dont_query == undef {
-      case $nameserver {
+      case $nameservers {
         /^10\./:  { $_dont_query = '127.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12, ::1/128' }
         /^172\./: { $_dont_query = '127.0.0.0/8, 10.0.0.0/8, 192.168.0.0/16, ::1/128' }
         /^192\./: { $_dont_query = '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128' }
@@ -23,12 +23,12 @@ class pdns::resolver::config (
       $_dont_query = $dont_query
     }
 
-    # Set the reverse domain based on the nameserver IP address
+    # Set the reverse domain based on the first nameserver IP address
     if $reverse_domain {
       $_reverse_domain = $reverse_domain
     }
     else {
-      case $nameserver {
+      case $nameservers {
         /^127\./: { $_reverse_domain = '127.in-addr.arpa' }
         /^10\./:  { $_reverse_domain = '10.in-addr.arpa' }
         /^172\./: { $_reverse_domain = '16.172.in-addr.arpa' }
@@ -37,11 +37,11 @@ class pdns::resolver::config (
           fail('pdns::resolver::config forward_domain is set but reverse_domain is not and must be')
         }
       }
-      notify { "setting reverse_domain to ${_reverse_domain} based on nameserver IP address ${nameserver}": }
+      notify { "setting reverse_domain to ${_reverse_domain} based on the first nameserver IP address in ${nameservers}": }
     }
     $_forward_zones = [
-      "${forward_domain}=${nameserver}",
-      "${_reverse_domain}=${nameserver}"
+      "${forward_domain}=${nameservers}",
+      "${_reverse_domain}=${nameservers}"
     ]
   }
   else {
