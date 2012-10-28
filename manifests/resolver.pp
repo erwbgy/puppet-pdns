@@ -1,11 +1,20 @@
+# = Class: pdns::resolver
+#
+# Installs and configures a PowerDNS resolver - www.powerdns.com
+#
+# Makes it easy to point to a name server for an internal domain.
+#
+# Currently only supported on RedHat-based systems
+#
+# For more information see https://github.com/erwbgy/puppet-pdns/
 class pdns::resolver(
   $listen_address = $::ipaddress,
   $dont_query     = undef,
   $forward_zones  = [],
-  $use_hiera      = false,
   $forward_domain = undef,
   $reverse_domain = undef,
-  $nameserver     = $::ipaddress
+  $nameserver     = $::ipaddress,
+  $use_hiera      = true
 ) {
   # Only run on RedHat derived systems.
   case $::osfamily {
@@ -15,14 +24,33 @@ class pdns::resolver(
     }
   }
   if $use_hiera {
-    $pdns_resolver = hiera('pdns_resolver')
+    $pdns     = hiera_hash('pdns')
+    $resolver = $pdns['resolver']
     class { 'pdns::resolver::config':
-      listen_address => $pdns_resolver['listen_address'],
-      dont_query     => $pdns_resolver['dont_query'],
-      forward_zones  => $pdns_resolver['forward_zones'],
-      forward_domain => $pdns_resolver['forward_domain'],
-      reverse_domain => $pdns_resolver['reverse_domain'],
-      nameserver     => $pdns_resolver['nameserver'],
+      listen_address => $resolver['listen_address'] ? {
+        undef   => $listen_address,
+        default => $resolver['listen_address'],
+      },
+      dont_query => $resolver['dont_query'] ? {
+        undef   => $dont_query,
+        default => $resolver['dont_query'],
+      },
+      forward_zones => $resolver['forward_zones'] ? {
+        undef   => $forward_zones,
+        default => $resolver['forward_zones'],
+      },
+      forward_domain => $resolver['forward_domain'] ? {
+        undef   => $forward_domain,
+        default => $resolver['forward_domain'],
+      },
+      reverse_domain => $resolver['reverse_domain'] ? {
+        undef   => $reverse_domain,
+        default => $resolver['reverse_domain'],
+      },
+      nameserver => $resolver['nameserver'] ? {
+        undef   => $nameserver,
+        default => $resolver['nameserver'],
+      },
     }
   }
   else {

@@ -4,33 +4,49 @@
 #
 # Currently supported backends: sqlite, postgresql
 #
-# Only supported on RedHat-based systems
+# Currently only supported on RedHat-based systems
 #
 # For more information see https://github.com/erwbgy/puppet-pdns/
 class pdns::nameserver(
   $listen_address = $::ipaddress,
   $backend        = 'sqlite',
-  $use_hiera      = false,
   $forward_domain = undef,
-  $reverse_domain = undef
+  $reverse_domain = undef,
+  $use_hiera      = true
 ) {
   # Only run on RedHat derived systems.
   case $::osfamily {
     RedHat: { }
     default: {
-      fail('This module only supports RedHat-based systems')
+      fail('This module currently only supports RedHat-based systems')
     }
   }
   if $use_hiera {
-    $pdns_nameserver = hiera['pdns_nameserver']
+    $pdns = hiera_hash('pdns')
+    $nameserver = $pdns['nameserver']
     class { 'pdns::nameserver::config':
-      backend        => $pdns_nameserver['backend'],
-      listen_address => $pdns_nameserver['listen_address'],
-      forward_domain => $pdns_nameserver['forward_domain'],
-      reverse_domain => $pdns_nameserver['reverse_domain'],
+      backend => $nameserver['backend'] ? {
+        undef   => $backend,
+        default => $nameserver['backend'],
+      },
+      listen_address => $nameserver['listen_address'] ? {
+        undef   => $listen_address,
+        default => $nameserver['listen_address'],
+      },
+      forward_domain => $nameserver['forward_domain'] ? {
+        undef   => $forward_domain,
+        default => $nameserver['forward_domain'],
+      },
+      reverse_domain => $nameserver['reverse_domain'] ? {
+        undef   => $reverse_domain,
+        default => $nameserver['reverse_domain'],
+      },
     }
     class { 'pdns::nameserver::install':
-      backend        => $pdns_nameserver['backend'],
+      backend        => $nameserver['backend'] ? {
+        undef   => $backend,
+        default => $nameserver['backend'],
+      },
     }
   }
   else {

@@ -22,6 +22,8 @@ class pdns::nameserver::config (
       /^172\./: { $reverse = '16.172.in-addr.arpa' }
       /^192\./: { $reverse = '168.192.in-addr.arpa' }
       default: {
+        err("listen_address is ${listen_address}")
+        err("::ipaddress is ${::ipaddress}")
         fail('pdns::nameserver::config forward_domain is set but reverse_domain is not and must be')
       }
     }
@@ -41,8 +43,9 @@ class pdns::nameserver::config (
     notify  => Class['pdns::nameserver::service'],
   }
   file { '/var/pdns':
-    ensure => directory,
-    mode   => '0755',
+    ensure  => directory,
+    mode    => '0755',
+    require => Package['pdns'],
   }
   case $backend {
     'postgresql': {
