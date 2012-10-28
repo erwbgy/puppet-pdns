@@ -169,7 +169,7 @@ Example:
       resolver:
         listen_address: '127.0.0.1'
         forward_domain: 'local'
-        nameservers:     '192.168.0.3,192.168.0.4'
+        nameservers:    '192.168.0.3,192.168.0.4'
 
 ### Examples
 
@@ -248,7 +248,7 @@ or:
         dont_query:     '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128'
         forward_domain: 'local'
         reverse_domain: '0.168.192.in-addr.arpa'
-        nameservers:     '192.168.0.2'
+        nameservers:    '192.168.0.2'
 
 ## Testing
 
