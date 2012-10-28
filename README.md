@@ -2,7 +2,8 @@
 
 Manage PowerDNS configuration using Puppet
 
-Run either a PowerDNS name server or a PowerDNS resolver
+Run either a PowerDNS name server or a PowerDNS resolver, making it easy to use
+an internal domain.
 
 ## pdns::nameserver
 
@@ -11,7 +12,7 @@ resolvers for a specific set of domains managed by the name server.
 
 ### Parameters
 
-*use_hiera*: look up configuration under 'pdns_nameserver' hash in hiera
+*use_hiera*: look up configuration under 'pdns_nameserver' hash in hiera. Default: _true_
 
 *backend*: database backend to use - one of: _sqlite_ or _postgresql_. Default: _sqlite_.
 
@@ -26,62 +27,70 @@ is derived from the listen_address.  Default: undef
 #### Hiera configuration
 
 Parameters can be specified in hiera configuration files under the
-'pdns_nameserver' hash:
+'pdns nameserver' hash:
 
-    pdns_nameserver:
-      backend: ...
-      listen_address: ...
-      forward_domain: ...
-      reverse_domain: ...
+Example:
+
+    pdns:
+      nameserver:
+        backend:        'sqlite'
+        listen_address: '192.168.0.3'
+        forward_domain: 'local'
 
 ### Examples
+
+In_puppet node config we just:
+
+    include pdns::nameserver
 
 Assuming that the primary IP address is a 10.17.0.1:
 
 1) PowerDNS name server with SQLite backend
 
-    class { 'pdns::nameserver': }
+No hiera config or hiera config:
 
-or:
-
-    class { 'pdns::nameserver':
-      backend => 'sqlite'
-    }
+    pdns:
+      nameserver:
+        backend:        'sqlite'
 
 which is the same as:
 
-    class { 'pdns::nameserver':
-      backend        => 'sqlite',
-      listen_address => '10.17.0.1',
-    }
+    pdns:
+      nameserver:
+        backend:        'sqlite'
+        listen_address: '10.17.0.1'
 
 2) PowerDNS name server with Postgresql backend:
 
-    class { 'pdns::nameserver':
-      backend => 'postgresql'
-    }
+Hiera config:
+
+    pdns:
+      nameserver:
+        backend:        'postgresql'
 
 which is the same as:
 
-    class { 'pdns::nameserver':
-      backend        => 'postgresql',
-      listen_address => '10.17.0.1',
-    }
+    pdns:
+      nameserver:
+        backend:        'postgresql'
+        listen_address: '10.17.0.1'
 
 3) PowerDNS name server configured with an internal .local domain:
 
-    class { 'pdns::nameserver':
-      forward_domain => 'local'
-    }
+Hiera config:
+
+    pdns:
+      nameserver:
+        forward_domain: 'local'
 
 which is the same as:
 
-    class { 'pdns::nameserver':
-      backend        => 'sqlite',
-      listen_address => '10.17.0.1',
-      forward_domain => 'local',
-      reverse_domain => '10.in-addr.arpa',
-    }
+    pdns:
+      nameserver:
+        backend:        'sqlite',
+        listen_address: '10.17.0.1',
+        forward_domain: 'local',
+        reverse_domain: '10.in-addr.arpa',
 
 ### Scripts
 
@@ -130,13 +139,13 @@ Linux/Unix hosts.)
 
 ### Parameters
 
-*use_hiera*: look up configuration under 'pdns_resolver' hash in hiera
+*use_hiera*: look up configuration under the 'pdns resolver' hash in hiera. Default: _true_
 
 *listen_address*: IP to listen on. Default: _$::ipaddress_
 
 *dont_query*: IP ranges to exclude from lookups. Default: '127.0.0.0/8, 10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12, ::1/128'
 
-*forward_zones*: Array of <domain>=<name server IP> values specifying where to
+*forward_zones*: Array of <domain>=<name server IPs> values specifying where to
 send queries for specific domain.  Default: undef
 
 *forward_domain*: Internal domain name (eg. .local). Default: undef
@@ -145,7 +154,7 @@ send queries for specific domain.  Default: undef
 10.in-addr.arpa).  If forward domain is specified and this is not set then it
 is derived from the listen_address.  Default: undef
 
-*nameserver*: The IP address of the authoritative nameserver for the internal
+*nameservers*: Comma-separated list of the IP addresses of the authoritative nameservers for the internal
 domain name specified in $forward_domain.  Default: $::ipaddress
 
 #### Hiera configuration
@@ -153,89 +162,92 @@ domain name specified in $forward_domain.  Default: $::ipaddress
 Parameters can be specified in hiera configuration files under the
 'pdns_resolver' hash:
 
-    pdns_resolver:
-      listen_address: ...
-      dont_query: ...
-      forward_zones: ...
-      forward_domain: ...
-      reverse_domain: ...
-      nameserver: ...
+Example:
+
+    pdns:
+      resolver:
+        listen_address: '127.0.0.1'
+        forward_domain: 'local'
+        nameservers:     '192.168.0.3,192.168.0.4'
 
 ### Examples
+
+In_puppet node config we just:
+
+    include pdns::resolver
 
 Assuming that the local IP address is 192.168.0.72 and there is a authoritative
 name server for an internal .local domain at 192.168.0.2:
 
 1) Basic PowerDNS resolver:
 
-    class { 'pdns::resolver': }
+No hiera config which is the same as:
 
-which is the same as:
-
-    class { 'pdns::resolver':
-      listen_address => 192.168.0.72
-    }
+    pdns:
+      resolver:
+        listen_address: 192.168.0.72
 
 3) PowerDNS resolver configured to send queries for a .local domain to the
 specified name server:
 
-    class { 'pdns::resolver':
-      forward_domain => 'local',
-      nameserver     => '192.168.0.2'
-    }
+Hiera config:
+
+    pdns:
+      resolver:
+        forward_domain: 'local',
+        nameservers:    '192.168.0.2'
 
 which is the same as:
 
-    class { 'pdns::resolver':
-      listen_address => 192.168.0.72,
-      dont_query     => '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
-      forward_domain => 'local',
-      reverse_domain => '168.192.in-addr.arpa',
-      nameserver     => '192.168.0.2'
-    }
+    pdns:
+      resolver:
+        listen_address: '192.168.0.72'
+        dont_query:     '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128'
+        forward_domain: 'local'
+        reverse_domain: '168.192.in-addr.arpa'
+        nameservers:    '192.168.0.2'
 
 or:
 
-    class { 'pdns::resolver':
-      listen_address => 192.168.0.72,
-      dont_query     => '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
-      forward_zones  => [
-        'local=192.168.0.2',
-        '168.192.in-addr.arpa=192.168.0.2'
-      ]
-    }
+    pdns:
+      resolver:
+        listen_address: '192.168.0.72'
+        dont_query:     '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128'
+        forward_zones:
+          - 'local=192.168.0.2'
+          - '168.192.in-addr.arpa=192.168.0.2'
 
 4) PowerDNS resolver configured to send queries for a .local domain to the
 specified name server and network (192.168.0.0/24) for reverse lookups:
 
-    class { 'pdns::resolver':
-      forward_domain => 'local',
-      forward_zones  => [
-        'local=192.168.0.2',
-        '0.168.192.in-addr.arpa=192.168.0.2'
-      ]
-    }
+Hiera config:
+
+    pdns:
+      resolver:
+        forward_domain: 'local'
+        forward_zones:
+          - 'local=192.168.0.2'
+          - '0.168.192.in-addr.arpa=192.168.0.2'
 
 which is the same as:
 
-    class { 'pdns::resolver':
-      listen_address => '192.168.0.72',
-      dont_query     => '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
-      forward_zones  => [
-        'local=192.168.0.2',
-        '0.168.192.in-addr.arpa=192.168.0.2'
-      ]
-    }
+    pdns:
+      resolver:
+        listen_address: '192.168.0.72'
+        dont_query:     '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128'
+        forward_zones:
+          - 'local=192.168.0.2'
+          - '0.168.192.in-addr.arpa=192.168.0.2'
 
 or:
 
-    class { 'pdns::resolver':
-      listen_address => '192.168.0.72',
-      dont_query     => '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128',
-      forward_domain => 'local',
-      reverse_domain => '0.168.192.in-addr.arpa',
-      nameserver     => '192.168.0.2',
-    }
+    pdns:
+      resolver:
+        listen_address: '192.168.0.72'
+        dont_query:     '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, ::1/128'
+        forward_domain: 'local'
+        reverse_domain: '0.168.192.in-addr.arpa'
+        nameservers:     '192.168.0.2'
 
 ## Testing
 
