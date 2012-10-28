@@ -39,7 +39,7 @@ Example:
 
 ### Examples
 
-In_puppet node config we just:
+In puppet node config we just include the class:
 
     include pdns::nameserver
 
@@ -119,7 +119,8 @@ Use the `show` script to see the entries in the database - for example:
     # /etc/pdns/show 
                name            | type  |   content    
     ---------------------------+-------+--------------
-     ns1.local                 | A     | 10.47.73.125
+     server1.local             | A     | 10.47.73.125
+     ns1.local                 | CNAME | server1.local
      prod2.local               | A     | 10.0.0.4
      alias2.local              | CNAME | prod2.local
      10.in-addr.arpa           | NS    | ns1.local
@@ -172,7 +173,7 @@ Example:
 
 ### Examples
 
-In_puppet node config we just:
+In puppet node config we just include the class:
 
     include pdns::resolver
 
