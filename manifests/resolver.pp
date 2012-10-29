@@ -26,6 +26,9 @@ class pdns::resolver(
   if $use_hiera {
     $pdns     = hiera_hash('pdns')
     $resolver = $pdns['resolver']
+    if ! $resolver {
+      fail('pdns::resolver: no pdns resolver hash found in hiera config')
+    }
     class { 'pdns::resolver::config':
       listen_address => $resolver['listen_address'] ? {
         undef   => $listen_address,

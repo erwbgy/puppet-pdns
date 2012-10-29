@@ -24,6 +24,9 @@ class pdns::nameserver(
   if $use_hiera {
     $pdns = hiera_hash('pdns')
     $nameserver = $pdns['nameserver']
+    if ! $nameserver {
+      fail('pdns::nameserver: no pdns nameserver hash found in hiera config')
+    }
     class { 'pdns::nameserver::config':
       backend => $nameserver['backend'] ? {
         undef   => $backend,
