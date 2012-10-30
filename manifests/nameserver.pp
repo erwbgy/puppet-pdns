@@ -50,6 +50,7 @@ class pdns::nameserver(
             default => $nameserver['backend'],
           },
         }
+        include pdns::nameserver::service
       }
     }
   }
@@ -63,6 +64,6 @@ class pdns::nameserver(
     class { 'pdns::nameserver::install':
       backend        => $backend,
     }
+    include pdns::nameserver::service
   }
-  require pdns::nameserver::service
 }
