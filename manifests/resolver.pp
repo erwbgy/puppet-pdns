@@ -54,6 +54,8 @@ class pdns::resolver(
             default => $resolver['nameservers'],
           },
         }
+        include pdns::resolver::install
+        include pdns::resolver::service
       }
     }
   }
@@ -66,7 +68,7 @@ class pdns::resolver(
       reverse_domain => $reverse_domain,
       nameservers    => $nameservers,
     }
+    include pdns::resolver::install
+    include pdns::resolver::service
   }
-  require pdns::resolver::install
-  require pdns::resolver::service
 }
