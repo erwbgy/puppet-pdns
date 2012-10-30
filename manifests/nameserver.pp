@@ -22,34 +22,35 @@ class pdns::nameserver(
     }
   }
   if $use_hiera {
-    $pdns = hiera_hash('pdns')
-    $nameserver = $pdns['nameserver']
-    if ! $nameserver {
-      fail('pdns::nameserver: no pdns nameserver hash found in hiera config')
-    }
-    class { 'pdns::nameserver::config':
-      backend => $nameserver['backend'] ? {
-        undef   => $backend,
-        default => $nameserver['backend'],
-      },
-      listen_address => $nameserver['listen_address'] ? {
-        undef   => $listen_address,
-        default => $nameserver['listen_address'],
-      },
-      forward_domain => $nameserver['forward_domain'] ? {
-        undef   => $forward_domain,
-        default => $nameserver['forward_domain'],
-      },
-      reverse_domain => $nameserver['reverse_domain'] ? {
-        undef   => $reverse_domain,
-        default => $nameserver['reverse_domain'],
-      },
-    }
-    class { 'pdns::nameserver::install':
-      backend        => $nameserver['backend'] ? {
-        undef   => $backend,
-        default => $nameserver['backend'],
-      },
+    $pdns = hiera_hash('pdns', undef)
+    if $pdns {
+      $nameserver = $pdns['nameserver']
+      if $nameserver {
+        class { 'pdns::nameserver::config':
+          backend => $nameserver['backend'] ? {
+            undef   => $backend,
+            default => $nameserver['backend'],
+          },
+          listen_address => $nameserver['listen_address'] ? {
+            undef   => $listen_address,
+            default => $nameserver['listen_address'],
+          },
+          forward_domain => $nameserver['forward_domain'] ? {
+            undef   => $forward_domain,
+            default => $nameserver['forward_domain'],
+          },
+          reverse_domain => $nameserver['reverse_domain'] ? {
+            undef   => $reverse_domain,
+            default => $nameserver['reverse_domain'],
+          },
+        }
+        class { 'pdns::nameserver::install':
+          backend        => $nameserver['backend'] ? {
+            undef   => $backend,
+            default => $nameserver['backend'],
+          },
+        }
+      }
     }
   }
   else {

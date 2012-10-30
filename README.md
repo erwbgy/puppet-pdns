@@ -5,6 +5,22 @@ Manage PowerDNS configuration using Puppet
 Run either a PowerDNS name server or a PowerDNS resolver, making it easy to use
 an internal domain.
 
+In puppet node config we include the class:
+
+    include pdns
+
+Configure the name server and/or resolver using hiera configuration - for example:
+
+    pdns:
+      nameserver:
+        backend:        'sqlite'
+        listen_address: '192.168.0.3'
+        forward_domain: 'local'
+      resolver:
+        listen_address: '127.0.0.1'
+        forward_domain: 'local'
+        nameservers:    '192.168.0.3,192.168.0.4'
+
 ## pdns::nameserver
 
 Run a PowerDNS name server to authoritatively answer hostname/IP queries from DNS

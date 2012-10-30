@@ -6,5 +6,6 @@ class pdns {
       fail('This module only supports RedHat-based systems')
     }
   }
-  fail('Use the pdns::nameserver or pdns::resolver class')
+  include pdns::nameserver
+  include pdns::resolver
 }

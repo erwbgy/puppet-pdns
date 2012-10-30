@@ -24,36 +24,37 @@ class pdns::resolver(
     }
   }
   if $use_hiera {
-    $pdns     = hiera_hash('pdns')
-    $resolver = $pdns['resolver']
-    if ! $resolver {
-      fail('pdns::resolver: no pdns resolver hash found in hiera config')
-    }
-    class { 'pdns::resolver::config':
-      listen_address => $resolver['listen_address'] ? {
-        undef   => $listen_address,
-        default => $resolver['listen_address'],
-      },
-      dont_query => $resolver['dont_query'] ? {
-        undef   => $dont_query,
-        default => $resolver['dont_query'],
-      },
-      forward_zones => $resolver['forward_zones'] ? {
-        undef   => $forward_zones,
-        default => $resolver['forward_zones'],
-      },
-      forward_domain => $resolver['forward_domain'] ? {
-        undef   => $forward_domain,
-        default => $resolver['forward_domain'],
-      },
-      reverse_domain => $resolver['reverse_domain'] ? {
-        undef   => $reverse_domain,
-        default => $resolver['reverse_domain'],
-      },
-      nameservers => $resolver['nameservers'] ? {
-        undef   => $nameservers,
-        default => $resolver['nameservers'],
-      },
+    $pdns = hiera_hash('pdns', undef)
+    if $pdns {
+      $resolver = $pdns['resolver']
+      if $resolver {
+        class { 'pdns::resolver::config':
+          listen_address => $resolver['listen_address'] ? {
+            undef   => $listen_address,
+            default => $resolver['listen_address'],
+          },
+          dont_query => $resolver['dont_query'] ? {
+            undef   => $dont_query,
+            default => $resolver['dont_query'],
+          },
+          forward_zones => $resolver['forward_zones'] ? {
+            undef   => $forward_zones,
+            default => $resolver['forward_zones'],
+          },
+          forward_domain => $resolver['forward_domain'] ? {
+            undef   => $forward_domain,
+            default => $resolver['forward_domain'],
+          },
+          reverse_domain => $resolver['reverse_domain'] ? {
+            undef   => $reverse_domain,
+            default => $resolver['reverse_domain'],
+          },
+          nameservers => $resolver['nameservers'] ? {
+            undef   => $nameservers,
+            default => $resolver['nameservers'],
+          },
+        }
+      }
     }
   }
   else {
