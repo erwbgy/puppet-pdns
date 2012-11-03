@@ -1,5 +1,5 @@
 name    'erwbgy-pdns'
-version '0.3.0'
+version '0.3.1'
 author 'Keith Burdis'
 license 'Apache License, Version 2.0'
 summary 'PowerDNS nameserver or resolver'
