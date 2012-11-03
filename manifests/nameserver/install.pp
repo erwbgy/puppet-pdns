@@ -4,24 +4,36 @@ class pdns::nameserver::install (
   if $backend == undef {
     fail('pdns::nameserver::install backend parameter is required')
   }
-  package { [
-    'pdns',
-    'coreutils',
-    'bash'
-  ]:
-    ensure => installed,
+
+  if ! defined(Package['pdns']) {
+    package { 'pdns': ensure => installed }
   }
+  if ! defined(Package['coreutils']) {
+    package { 'coreutils': ensure => installed }
+  }
+  if ! defined(Package['bash']) {
+    package { 'bash': ensure => installed }
+  }
+
   case $backend {
     'postgresql': {
-      package { [
-        'postgresql',
-        'postgresql-server',
-        'pdns-backend-postgresql',
-        'perl-DBI',
-        'perl-DBD-Pg',
-        'sudo'
-      ]:
-        ensure => installed,
+      if ! defined(Package['postgresql']) {
+        package { 'postgresql': ensure => installed }
+      }
+      if ! defined(Package['postgresql-server']) {
+        package { 'postgresql-server': ensure => installed }
+      }
+      if ! defined(Package['pdns-backend-postgresql']) {
+        package { 'pdns-backend-postgresql': ensure => installed }
+      }
+      if ! defined(Package['perl-DBI']) {
+        package { 'perl-DBI': ensure => installed }
+      }
+      if ! defined(Package['perl-DBD-Pg']) {
+        package { 'perl-DBD-Pg': ensure => installed }
+      }
+      if ! defined(Package['sudo']) {
+        package { 'sudo': ensure => installed }
       }
       exec { 'pdns-dbsetup':
         command     => '/var/pdns/dbsetup.sh',
@@ -36,13 +48,17 @@ class pdns::nameserver::install (
       }
     }
     'sqlite': {
-      package { [
-        'sqlite',
-        'pdns-backend-sqlite',
-        'perl-DBI',
-        'perl-DBD-SQLite'
-      ]:
-        ensure => installed,
+      if ! defined(Package['sqlite']) {
+        package { 'sqlite': ensure => installed }
+      }
+      if ! defined(Package['pdns-backend-sqlite']) {
+        package { 'pdns-backend-sqlite': ensure => installed }
+      }
+      if ! defined(Package['perl-DBI']) {
+        package { 'perl-DBI': ensure => installed }
+      }
+      if ! defined(Package['perl-DBD-SQLite']) {
+        package { 'perl-DBD-SQLite': ensure => installed }
       }
       exec { 'pdns-dbsetup':
         command     => '/var/pdns/dbsetup.sh',

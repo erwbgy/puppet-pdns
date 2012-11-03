@@ -1,7 +1,5 @@
 class pdns::resolver::install {
-  package { [
-    'pdns-recursor'
-  ]:
-    ensure => installed,
+  if ! defined(Package['pdns-recursor']) {
+    package { 'pdns-recursor': ensure => installed }
   }
 }
