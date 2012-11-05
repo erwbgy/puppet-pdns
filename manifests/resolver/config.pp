@@ -37,7 +37,7 @@ class pdns::resolver::config (
           fail('pdns::resolver::config forward_domain is set but reverse_domain is not and must be')
         }
       }
-      notify { "setting reverse_domain to ${_reverse_domain} based on the first nameserver IP address in ${nameservers}": }
+      warning("setting reverse_domain to ${_reverse_domain} based on the first nameserver IP address in ${nameservers}")
     }
     $_forward_zones = [
       "${forward_domain}=${nameservers}",
