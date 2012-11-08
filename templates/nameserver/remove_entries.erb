@@ -8,7 +8,7 @@ my $reverse_domain = '<%= scope.lookupvar('pdns::nameserver::config::reverse') %
 
 <% if scope.lookupvar('pdns::nameserver::config::backend') == 'sqlite' -%>
 # SQLite
-my $dbh = DBI->connect("dbi:SQLite:dbname=/var/pdns/powerdns.sqlite", "", "");
+my $dbh = DBI->connect("dbi:SQLite:dbname=/var/pdns/powerdns.sqlite", "", "")
   or die $DBI::errstr . "\n";
 <% elsif scope.lookupvar('pdns::nameserver::config::backend') == 'postgresql' -%>
 # Posgresql

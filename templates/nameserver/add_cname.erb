@@ -9,5 +9,5 @@ then
   echo
   exit 1
 fi
-DIR=$(basename $0)
+DIR=$(dirname $0)
 exec $DIR/add_entry "$ALIAS" "CNAME" "$HOST"

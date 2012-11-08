@@ -81,7 +81,7 @@ class pdns::nameserver::config (
     content => template('pdns/nameserver/add_entries.erb'),
     require => File['/var/pdns'],
   }
-  file { '/var/pdns/add_entry':
+  file { '/etc/pdns/add_entry':
     ensure  => present,
     mode    => '0555',
     content => template('pdns/nameserver/add_entry.erb'),
@@ -105,7 +105,7 @@ class pdns::nameserver::config (
     content => template('pdns/nameserver/remove_entries.erb'),
     require => File['/var/pdns'],
   }
-  file { '/var/pdns/remove_entry':
+  file { '/etc/pdns/remove_entry':
     ensure  => present,
     mode    => '0555',
     content => template('pdns/nameserver/remove_entry.erb'),
