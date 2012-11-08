@@ -9,19 +9,22 @@ my $reverse_domain = '<%= scope.lookupvar('pdns::nameserver::config::reverse') %
 <% if scope.lookupvar('pdns::nameserver::config::backend') == 'sqlite' -%>
 # SQLite
 my $dbh = DBI->connect("dbi:SQLite:dbname=/var/pdns/powerdns.sqlite", "", "");
+  or die $DBI::errstr . "\n";
 <% elsif scope.lookupvar('pdns::nameserver::config::backend') == 'postgresql' -%>
 # Posgresql
 my $dbh = DBI->connect("dbi:Pg:dbname=powerdns", "", "", {AutoCommit => 1})
-  or die DBI->err;
+  or die $DBI::errstr . "\n";
 <% end -%>
 
 # Get domain id for forward domain (eg. 'local')
 my ($forward_domain_id) =
   $dbh->selectrow_array("SELECT id FROM domains WHERE name='$forward_domain'");
+die "Can't find id for domain $forward_domain\n" unless $forward_domain_id;
 
-# Get domain if for reverse domain (eg. '10.in-addr.arpa')
+# Get domain id for reverse domain (eg. '10.in-addr.arpa')
 my ($reverse_domain_id) =
   $dbh->selectrow_array("SELECT id FROM domains WHERE name='$reverse_domain'");
+die "Can't find id for domain $reverse_domain\n" unless $reverse_domain_id;
 
 # Add A record - input: hostname, IP
 my $sth_insert_A =
@@ -59,6 +62,11 @@ while(<>) {
   chomp;
   my ($name, $type, $content) = split(/\s+/, $_, 3);
 
+  # type is uppercase; name and content are lowercase
+  $type    =~ tr/a-z/A-Z/;
+  $name    =~ tr/A-Z/a-z/;
+  $content =~ tr/A-Z/a-z/;
+
   if ($type eq 'A') {
     my $host = $name;
     my $ip   = $content;
@@ -74,11 +82,11 @@ while(<>) {
     }
   
     # Get A record - input: hostname; output: IP
-    $sth_select_A->execute($host) or die;
+    $sth_select_A->execute($host) or die $DBI::errstr . "\n";
     ($current_ip) = $sth_select_A->fetchrow_array;
   
     # Get IP from A record - input: IP; output: hostname
-    $sth_select_A_IP->execute($ip) or die;
+    $sth_select_A_IP->execute($ip) or die $DBI::errstr . "\n";
     ($current_host) = $sth_select_A_IP->fetchrow_array;
   
     print "Adding A record for host $host with IP $ip: ";
@@ -96,18 +104,18 @@ while(<>) {
     else {
       print "ok\n";
       # Add A record - input: hostname, IP
-      $sth_insert_A->execute($host, $ip) or die;
+      $sth_insert_A->execute($host, $ip) or die $DBI::errstr . "\n";
     }
   
     my @f = split(/\./, $ip);
     my $reverse_entry = join(".", reverse @f) . '.in-addr.arpa';
   
     # Get PTR record - input: reverse IP; output hostname
-    $sth_select_PTR->execute($reverse_entry) or die;
+    $sth_select_PTR->execute($reverse_entry) or die $DBI::errstr . "\n";
     ($current_host) = $sth_select_PTR->fetchrow_array;
   
     # Get reverse IP from PTR record - input: hostname; output: reverse IP
-    $sth_select_PTR_host->execute($host) or die;
+    $sth_select_PTR_host->execute($host) or die $DBI::errstr . "\n";
     ($current_reverse_entry) = $sth_select_PTR_host->fetchrow_array;
   
     print "Adding PTR record for reverse IP $reverse_entry with host $host: ";
@@ -125,18 +133,18 @@ while(<>) {
     else {
       print "ok\n";
       # Add PTR (in-addr.arpa) record - input: reverse IP, hostname
-      $sth_insert_PTR->execute($reverse_entry, $host) or die;
+      $sth_insert_PTR->execute($reverse_entry, $host) or die $DBI::errstr . "\n";
     }
   }
   else {
     unless (($name =~ /^\d/) or ($name =~ /^(.*?)\./)) {
       $name .= '.' . $forward_domain;
     }
-    unless (($content =~ /^\d/) or ($content =~ /^(.*?)\./)) {
+    unless (($content =~ /^\d/) or ($content =~ /^(.*?)\./) or ($type eq 'MX')) {
       $content .= '.' . $forward_domain;
     }
     # Get entry - input: name, type; output: content
-    $sth_select_ENTRY->execute($name, $type) or die;
+    $sth_select_ENTRY->execute($name, $type) or die $DBI::errstr . "\n";
     my ($current_content) = $sth_select_ENTRY->fetchrow_array;
 
     print "Adding $type record: name $name, content $content: ";
@@ -151,7 +159,7 @@ while(<>) {
     else {
       print "ok\n";
       # Add entry - input: name, type, content
-      $sth_insert_ENTRY->execute($name, $type, $content) or die;
+      $sth_insert_ENTRY->execute($name, $type, $content) or die $DBI::errstr . "\n";
     }
   }
 }
