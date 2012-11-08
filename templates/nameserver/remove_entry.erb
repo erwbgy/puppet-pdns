@@ -1,0 +1,19 @@
+#!/bin/bash
+NAME=$1
+TYPE=$2
+if test -z "$NAME" -o -z "$TYPE"
+then
+  echo "Usage: $0 <name> <type>" >&2
+  echo
+  echo "Example: $0 puppet CNAME" >&2
+  echo
+  exit 1
+fi
+<% _backend = scope.lookupvar("pdns::nameserver::config::backend") -%>
+<% if _backend == "postgresql" -%>
+su -c "echo '$NAME $TYPE' | /var/pdns/remove_entries" postgres
+<% else -%>
+echo "$NAME $TYPE" | /var/pdns/remove_entries
+<% end -%>
+printf "Restarting name server: "
+pdns_control cycle

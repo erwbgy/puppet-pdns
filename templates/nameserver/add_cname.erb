@@ -9,11 +9,5 @@ then
   echo
   exit 1
 fi
-<% _backend = scope.lookupvar("pdns::nameserver::config::backend") -%>
-<% if _backend == "postgresql" -%>
-su -c "echo '$ALIAS CNAME $HOST' | /var/pdns/add_cname_entries" postgres
-<% else -%>
-echo "$ALIAS CNAME $HOST" | /var/pdns/add_cname_entries
-<% end -%>
-printf "Restarting name server: "
-pdns_control cycle
+DIR=$(basename $0)
+exec $DIR/add_entry "$ALIAS" "CNAME" "$HOST"
