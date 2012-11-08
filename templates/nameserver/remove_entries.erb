@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+use DBI;
+use warnings;
+use strict;
+
+my $forward_domain = '<%= scope.lookupvar('pdns::nameserver::config::forward_domain') %>';
+my $reverse_domain = '<%= scope.lookupvar('pdns::nameserver::config::reverse') %>';
+
+<% if scope.lookupvar('pdns::nameserver::config::backend') == 'sqlite' -%>
+# SQLite
+my $dbh = DBI->connect("dbi:SQLite:dbname=/var/pdns/powerdns.sqlite", "", "");
+  or die $DBI::errstr . "\n";
+<% elsif scope.lookupvar('pdns::nameserver::config::backend') == 'postgresql' -%>
+# Posgresql
+my $dbh = DBI->connect("dbi:Pg:dbname=powerdns", "", "", {AutoCommit => 1})
+  or die $DBI::errstr . "\n";
+<% end -%>
+
+# Get domain id for forward domain (eg. 'local')
+my ($forward_domain_id) =
+  $dbh->selectrow_array("SELECT id FROM domains WHERE name='$forward_domain'");
+die "Can't find id for domain $forward_domain\n" unless $forward_domain_id;
+
+# Get domain id for reverse domain (eg. '10.in-addr.arpa')
+my ($reverse_domain_id) =
+  $dbh->selectrow_array("SELECT id FROM domains WHERE name='$reverse_domain'");
+die "Can't find id for domain $reverse_domain\n" unless $reverse_domain_id;
+
+# Get entry - input: name, type; output: content
+my $sth_select_ENTRY =
+  $dbh->prepare("SELECT content from records where domain_id='$forward_domain_id' AND name=? AND type=?");
+
+# Delete entry - input: name, type
+my $sth_delete_ENTRY =
+  $dbh->prepare("DELETE from records where domain_id='$forward_domain_id' AND name=? AND type=?");
+
+# Delete PTR entry - input: name
+my $sth_delete_PTR =
+  $dbh->prepare("DELETE from records where domain_id='$reverse_domain_id' AND name=? AND type='PTR'");
+
+while(<>) {
+  chomp;
+  my ($name, $type) = split(/\s+/, $_, 2);
+
+  # type is uppercase; name is lowercase
+  $type =~ tr/a-z/A-Z/;
+  $name =~ tr/A-Z/a-z/;
+
+  unless (($name =~ /^\d/) or ($name =~ /^(.*?)\./)) {
+    $name .= '.' . $forward_domain;
+  }
+
+  # Get entry - input: name, type; output: content
+  $sth_select_ENTRY->execute($name, $type) or die $DBI::errstr . "\n";
+  my ($content) = $sth_select_ENTRY->fetchrow_array;
+  unless ($content) {
+    printf "$name $type record not found\n";
+    next;
+  }
+
+  print "Removing $name $type record with content $content: ";
+  # Delete entry - input: name, type
+  if ($sth_delete_ENTRY->execute($name, $type)) {
+    print "ok\n";
+  }
+  else {
+    printf "%s\n", $DBI::errstr;
+    next;
+  }
+
+  if ($type eq 'A') {
+    my @f = split(/\./, $content);
+    my $reverse_entry = join(".", reverse @f) . '.in-addr.arpa';
+  
+    print "Removing PTR record for reverse IP '$reverse_entry': ";
+    # Delete entry - input: name, type
+    if ($sth_delete_PTR->execute($reverse_entry)) {
+      print "ok\n";
+    }
+    else {
+      printf "%s\n", $DBI::errstr;
+    }
+  }
+}
+
