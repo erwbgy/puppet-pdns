@@ -4,6 +4,6 @@
 echo 'select name, type, content from records order by type,name;' | \
 su -c 'psql powerdns' postgres
 <% elsif backend == "sqlite" -%>
-printf '.width 40 10 40;\nselect name, type, content from records order by type,name;\n' | \
+printf '.width 30 10 30;\nselect name, type, content from records order by type,name;\n' | \
 sqlite3 -column /var/pdns/powerdns.sqlite
 <% end -%>
