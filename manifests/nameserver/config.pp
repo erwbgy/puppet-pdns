@@ -75,10 +75,16 @@ class pdns::nameserver::config (
     notify  => Exec['pdns-dbsetup'],
     require => File['/var/pdns'],
   }
-  file { '/var/pdns/add_host_entries':
+  file { '/var/pdns/add_entries':
     ensure  => present,
     mode    => '0555',
-    content => template('pdns/nameserver/add_host_entries.erb'),
+    content => template('pdns/nameserver/add_entries.erb'),
+    require => File['/var/pdns'],
+  }
+  file { '/var/pdns/add_entry':
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/add_entry.erb'),
     require => File['/var/pdns'],
   }
   file { '/etc/pdns/add_host':
@@ -87,16 +93,34 @@ class pdns::nameserver::config (
     content => template('pdns/nameserver/add_host.erb'),
     require => Package['pdns'],
   }
-  file { '/var/pdns/add_cname_entries':
-    ensure  => present,
-    mode    => '0555',
-    content => template('pdns/nameserver/add_cname_entries.erb'),
-    require => Package['pdns'],
-  }
   file { '/etc/pdns/add_cname':
     ensure  => present,
     mode    => '0555',
     content => template('pdns/nameserver/add_cname.erb'),
+    require => Package['pdns'],
+  }
+  file { '/var/pdns/remove_entries':
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/remove_entries.erb'),
+    require => File['/var/pdns'],
+  }
+  file { '/var/pdns/remove_entry':
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/remove_entry.erb'),
+    require => File['/var/pdns'],
+  }
+  file { '/etc/pdns/remove_host':
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/remove_host.erb'),
+    require => Package['pdns'],
+  }
+  file { '/etc/pdns/remove_cname':
+    ensure  => present,
+    mode    => '0555',
+    content => template('pdns/nameserver/remove_cname.erb'),
     require => Package['pdns'],
   }
   file { '/etc/pdns/show':
