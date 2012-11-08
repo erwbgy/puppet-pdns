@@ -1,8 +1,9 @@
 #!/bin/bash
 <% _backend = scope.lookupvar("pdns::nameserver::config::backend") -%>
-echo 'select name, type, content from records order by type,name;' | \
 <% if _backend == "postgresql" -%>
+echo 'select name, type, content from records order by type,name;' | \
 su -c 'psql powerdns' postgres
 <% elsif backend == "sqlite" -%>
+printf '.width 40 10 40;\nselect name, type, content from records order by type,name;\n' | \
 sqlite3 -column /var/pdns/powerdns.sqlite
 <% end -%>
