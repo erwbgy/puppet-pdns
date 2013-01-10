@@ -38,6 +38,24 @@
 <p>Run either a PowerDNS name server or a PowerDNS resolver, making it easy to use
 an internal domain.</p>
 
+<p>In puppet node config we include the class:</p>
+
+<pre><code>include pdns
+</code></pre>
+
+<p>Configure the name server and/or resolver using hiera configuration - for example:</p>
+
+<pre><code>pdns:
+  nameserver:
+    backend:        'sqlite'
+    listen_address: '192.168.0.3'
+    forward_domain: 'local'
+  resolver:
+    listen_address: '127.0.0.1'
+    forward_domain: 'local'
+    nameservers:    '192.168.0.3,192.168.0.4'
+</code></pre>
+
 <h2>pdns::nameserver</h2>
 
 <p>Run a PowerDNS name server to authoritatively answer hostname/IP queries from DNS
@@ -348,7 +366,17 @@ Finished in 5.19 seconds
       </footer>
     </div>
 
-    
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-37513727-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
 
   </body>
 </html>
